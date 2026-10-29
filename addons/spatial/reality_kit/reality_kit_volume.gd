@@ -80,10 +80,8 @@ func _on_button(button: String, controller: XRController3D, pressed: bool) -> vo
 	print("[spatial] %s %s %s" % [controller.tracker, button, "pressed" if pressed else "released"])
 
 
-## A short ray along the aim pose. visionOS puts a spatial controller's aim
-## location near the heel of the hand, so the ray starts at the controller's
-## front instead and ends 18 cm ahead of the aim location. The pose carries
-## the volume's scale, so the ray keeps its physical size, in meters.
+## A short ray along the aim pose. The pose carries the volume's scale, so
+## the ray keeps its physical size, in meters.
 func _ray_mesh() -> MeshInstance3D:
 	var ray := BoxMesh.new()
 	ray.size = Vector3(0.003, 0.003, 0.1)
@@ -93,5 +91,5 @@ func _ray_mesh() -> MeshInstance3D:
 	ray.material = material
 	var mesh := MeshInstance3D.new()
 	mesh.mesh = ray
-	mesh.position.z = -0.13
+	mesh.position.z = -0.05
 	return mesh

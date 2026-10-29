@@ -4,10 +4,8 @@ extends Node
 ## clicks, and inside it the controller taps faster, harder and sharper where
 ## the value is higher. Works with whatever controllers the volume has.
 
-## How far ahead of the controller's aim location the tip sits, in meters:
-## at the end of the visionOS pointer ray, which starts at the controller's
-## front rather than at the aim location near the heel of the hand.
-const TIP := 0.18
+## How far ahead of the controller the tip sits, in meters.
+const TIP := 0.1
 const ENTRY_FREQUENCY := 300.0
 const ENTRY_AMPLITUDE := 0.6
 ## Taps at the weakest and strongest values.
