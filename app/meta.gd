@@ -25,6 +25,8 @@ class Field:
 	var box := Transform3D()
 	## The field's brick at each frame.
 	var files := PackedStringArray()
+	## The largest byte in any of its bricks, or 0 until it is measured.
+	var peak := 0
 
 	## The value [param byte] stands for, or NAN for a cell with no value.
 	func value_of(byte: int) -> float:

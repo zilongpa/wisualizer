@@ -66,6 +66,8 @@ var playing := false
 var elapsed := 0.0
 ## The images the notes show, kept for as long as the document is open.
 var notes_images := NotesImages.new()
+## Worker tasks measuring the fields' peaks.
+var _peak_tasks: Array[int] = []
 ## How far the model is turned about the vertical, and tilted toward the
 ## person about [member _tilt_axis], now and where it is heading.
 var yaw := 0.0
@@ -124,6 +126,8 @@ func open(path: String) -> String:
 		return error
 	frame_count = meta.times.size()
 	field_index = meta.first_field
+	for index in meta.fields.size():
+		_peak_tasks.append(WorkerThreadPool.add_task(_measure_peak.bind(path, index, meta.fields[index].files)))
 	for entry in meta.models:
 		var frames := ModelFrames.new()
 		frames.setup(path, entry)
@@ -281,7 +285,37 @@ func update_field() -> void:
 	probes.visible = field.visible
 	probes.shown_field = current
 	field.transform = current.box
-	touch.set_brick(meta.read(current.files[frame]), current.cells, 255)
+	touch.set_brick(meta.read(current.files[frame]), current.cells, current.peak if current.peak > 0 else 255)
+
+
+## Finds the largest byte in a field's bricks, on a worker thread that opens
+## the ZIP itself. Controllers tap as strongly as they can there: the bricks
+## seldom come near byte 255, the top of the field's range, which can be
+## far above most of its values.
+func _measure_peak(path: String, index: int, files: PackedStringArray) -> void:
+	var zip := ZIPReader.new()
+	if zip.open(path) != OK:
+		return
+	var peak := 0
+	for file in files:
+		var bytes := zip.read_file(file)
+		if not bytes.is_empty():
+			bytes.sort()
+			peak = maxi(peak, bytes[-1])
+	zip.close()
+	_set_peak.call_deferred(index, peak)
+
+
+func _set_peak(index: int, peak: int) -> void:
+	meta.fields[index].peak = peak
+	if index == field_index:
+		update_field()
+
+
+func _exit_tree() -> void:
+	for task in _peak_tasks:
+		WorkerThreadPool.wait_for_task_completion(task)
+	_peak_tasks.clear()
 
 
 ## Turns the model as the person pinches and drags it, like Apple's globe:
