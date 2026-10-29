@@ -26,6 +26,9 @@ const SETTLE_RATE := 6.0
 ## Seconds of the hand's last speed that carry on turning the model after
 ## it is let go, like a globe given a spin.
 const SPIN_TIME := 0.3
+## A spatial event's kind for a finger touching, not pinching:
+## InputEventSpatialTouch.KIND_TOUCH, a class that exists only on visionOS.
+const KIND_TOUCH := 0
 
 @onready var model: Window = $Model
 ## The 3D nodes are found by unique name: platforms may move them within
@@ -288,6 +291,7 @@ func update_field() -> void:
 ## [constant TILT_LIMIT]. Both follow how far the hand has moved since the
 ## pinch began, so small jitters don't add up, and the model eases after the
 ## hand. On release the tilt springs back and the turn carries on a little.
+## Only a pinch turns it: a finger brushing the model leaves it be.
 ## Spatial events only come from visionOS; on desktop, the orbit camera
 ## turns the view instead.
 func turn_by_drag(camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape: int) -> void:
@@ -304,7 +308,7 @@ func turn_by_drag(camera: Node, event: InputEvent, _position: Vector3, _normal: 
 		if event.get("pressed") and _drag < 0 and labels.select_from_spatial_touch(camera, event):
 			_label_touch = event.get("index")
 			return
-		if event.get("pressed") and _drag < 0:
+		if event.get("pressed") and _drag < 0 and event.get("kind") != KIND_TOUCH:
 			_begin_drag(event.get("index"), event.get("world_position"))
 		elif not event.get("pressed") and event.get("index") == _drag:
 			_drag = -1
@@ -316,7 +320,7 @@ func turn_by_drag(camera: Node, event: InputEvent, _position: Vector3, _normal: 
 	if _label_touch != -1 and event.get("index") == _label_touch:
 		return
 	var at: Vector3 = event.get("world_position")
-	if _drag < 0:
+	if _drag < 0 and event.get("kind") != KIND_TOUCH:
 		_begin_drag(event.get("index"), at - (event.get("world_relative") as Vector3))
 	if event.get("index") != _drag:
 		return
