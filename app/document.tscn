@@ -288,15 +288,6 @@ size_flags_vertical = 4
 tooltip_text = "Show the field box, and the field around each controller"
 text = "Debug"
 
-[node name="Reset" type="Button" parent="Model/Options/Bar"]
-unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Turn the model back the way it opened"
-text = "Reset"
-
 [node name="Notes" type="Window" parent="Model"]
 title = "Notes"
 size = Vector2i(1000, 1200)
@@ -321,7 +312,6 @@ bbcode_enabled = true
 
 [connection signal="close_requested" from="Model" to="." method="close"]
 [connection signal="input_event" from="Model/Turntable/Grab" to="." method="turn_by_drag"]
-[connection signal="pressed" from="Model/Options/Bar/Reset" to="." method="reset_turn"]
 [connection signal="resized" from="Model/Volume" to="." method="fit" unbinds=1]
 [connection signal="pressed" from="Model/Controls/Bar/Play" to="." method="toggle_play"]
 [connection signal="value_changed" from="Model/Controls/Bar/Frame" to="." method="seek"]

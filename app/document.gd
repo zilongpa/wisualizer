@@ -199,7 +199,6 @@ func _add_field_picker() -> void:
 			field_index = index
 			update_field())
 		bar.add_child(button)
-		bar.move_child(button, %Reset.get_index())
 
 
 func show_notes(shown: bool) -> void:
@@ -330,7 +329,6 @@ func turn_by_drag(camera: Node, event: InputEvent, _position: Vector3, _normal: 
 	var delta := maxf(get_process_delta_time(), 0.001)
 	_yaw_speed = lerpf(_yaw_speed, (_yaw_target - turned) / delta, 0.5)
 	_tilt_target = _ease_tilt(_drag_tilt - moved.y / _radius * TURN_GAIN)
-	%Reset.visible = true
 
 
 ## Starts a drag at [param at]: tilting turns about the horizontal axis
@@ -358,12 +356,6 @@ static func _ease_tilt(raw: float) -> float:
 
 static func _unease_tilt(eased: float) -> float:
 	return TILT_LIMIT * tan(clampf(eased / TILT_LIMIT, -0.99, 0.99) * PI / 2.0) * 2.0 / PI
-
-
-func reset_turn() -> void:
-	_yaw_target = 0.0
-	_tilt_target = 0.0
-	%Reset.visible = false
 
 
 ## Eases the turn toward where it is heading.
