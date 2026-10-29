@@ -22,6 +22,18 @@ Open the project in that editor and press F5 for the desktop view, or export
 with the `visionOS` preset and run the generated Xcode project on Apple Vision
 Pro or the visionOS Simulator (set your signing team in Xcode).
 
+The `Windows` preset exports the desktop view as one `.exe`, without
+GodotRealityKit. Its template has to come from the same engine build, as the
+notes' formulas need its MathJax module. On a Mac, cross-compile it with
+MinGW (`brew install mingw-w64`):
+
+```sh
+scons platform=windows target=template_release arch=x86_64 use_mingw=yes d3d12=no accesskit=no
+```
+
+and copy (or link) `bin/godot.windows.template_release.x86_64.exe` into the
+editor's export templates as `4.7.dev/windows_release_x86_64.exe`.
+
 ## Use
 
 The first window is the library. **Open…** opens a ZIP, after asking whether
