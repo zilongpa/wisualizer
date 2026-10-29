@@ -91,4 +91,4 @@ func _show(probe: Dictionary, cell: Vector3i) -> void:
 	label.pixel_size = LABEL_HEIGHT / meters_per_unit / FONT_SIZE
 	label.position = center + Vector3.UP * ((unit.basis.get_scale().y / cells.y) * 0.5 + LABEL_GAP / meters_per_unit)
 	var reading: String = shown_field.format(shown_field.value_of(touch.byte_of(cell))) if shown_field else "%.2f" % value
-	label.text = "(%.1f, %.1f, %.1f)\n%s" % [center.x, center.y, center.z, reading]
+	label.text = "(%.1f, %.1f, %.1f)\nstrength %s" % [center.x, center.y, center.z, reading]

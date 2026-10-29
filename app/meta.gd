@@ -32,8 +32,18 @@ class Field:
 
 	## A value with its unit, such as "0.067 T".
 	func format(value: float) -> String:
-		var text := String.num(value, 3) if absf(value) >= 0.01 or value == 0.0 else "%.2e" % value
+		var text := String.num(value, 3) if absf(value) >= 0.01 or value == 0.0 else _scientific(value)
 		return text if unit.is_empty() else "%s %s" % [text, unit]
+
+	## [param value] as "9.38e-05". GDScript's % has no %e: it fails the call.
+	static func _scientific(value: float) -> String:
+		var exponent := floori(log(absf(value)) / log(10.0))
+		var mantissa := value / pow(10.0, exponent)
+		# Rounding to two decimals can carry 9.996 up to 10.00.
+		if absf(mantissa) >= 9.995:
+			mantissa /= 10.0
+			exponent += 1
+		return "%.2fe%s%02d" % [mantissa, "-" if exponent < 0 else "+", absi(exponent)]
 
 
 ## Text shown in the volume at a point, while a controller is near it.
