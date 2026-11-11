@@ -1,0 +1,4 @@
+.godot/
+/build/
+# Copy GodotRealityKit's built addon here; it isn't tracked.
+/addons/
