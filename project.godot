@@ -24,6 +24,7 @@ run/main_loop_type.visionos="RealitySceneTree"
 [autoload]
 
 SpatialWindows="*res://addons/spatial/spatial_windows.gd"
+Settings="*res://app/settings.gd"
 
 [display]
 

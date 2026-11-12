@@ -46,7 +46,6 @@ const KIND_TOUCH := 0
 @onready var play_button: Button = %Play
 @onready var slider: HSlider = %Frame
 @onready var counter: Label = %Count
-@onready var debug_button: CheckButton = %Debug
 @onready var probes: Node3D = %FieldProbes
 @onready var labels: Node3D = %Labels
 @onready var labels_button: CheckButton = %ShowLabels
@@ -60,7 +59,7 @@ const KIND_TOUCH := 0
 var meta := Meta.new()
 ## One per model, showing it at the current frame.
 var models: Array[ModelFrames] = []
-## The field the debug view shows and controllers feel.
+## The field the debug view shows, and controllers and hands feel.
 var field_index := 0
 var frame_count := 0
 var frame := 0
@@ -144,7 +143,7 @@ func open(path: String) -> String:
 		models.append(frames)
 	_add_model_switches()
 	_add_field_picker()
-	debug_button.disabled = meta.fields.is_empty()
+	Settings.changed.connect(update_field)
 	touch.volume = volume
 	touch.field = field
 	probes.touch = touch
@@ -159,6 +158,11 @@ func open(path: String) -> String:
 	# A model that doesn't change has nothing to play.
 	for control: Control in [play_button, slider, counter, $Model/Options/Bar/SpeedLabel, $Model/Options/Bar/Speeds]:
 		control.visible = frame_count > 1
+	# The field picker follows the playback speed and the switches, if any.
+	var switches := models.size() > 1 or not meta.labels.is_empty()
+	var picker := meta.fields.size() > 1
+	%Separator.visible = picker and (frame_count > 1 or switches)
+	options_button.visible = frame_count > 1 or switches or picker
 	_fit_options()
 	slider.max_value = frame_count - 1
 	seek(0)
@@ -177,7 +181,7 @@ func open(path: String) -> String:
 	fit()
 	model.show()
 	controls.show()
-	show_options(options_button.button_pressed)
+	show_options(options_button.visible and options_button.button_pressed)
 	show_notes(notes_button.visible)
 	# Show that the volume can be resized, once it has finished opening.
 	create_tween().tween_callback(show_resize_hint).set_delay(HINT_DELAY)
@@ -316,15 +320,15 @@ func seek(value: float) -> void:
 	update_field()
 
 
-## Shows the field box, and the field around each controller, if the debug
-## switch is on. The field can be felt with a controller either way.
+## Shows the field box, and the field around each controller and hand, if
+## the debug view is on in the settings. The field can be felt either way.
 func update_field() -> void:
 	if meta.fields.is_empty():
 		field.visible = false
 		probes.visible = false
 		return
 	var current: Meta.Field = meta.fields[field_index]
-	field.visible = debug_button.button_pressed
+	field.visible = Settings.debug
 	probes.visible = field.visible
 	probes.shown_field = current
 	field.transform = current.box

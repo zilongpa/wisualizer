@@ -4,6 +4,8 @@
 [ext_resource type="Texture2D" path="res://branding/icon.png" id="2"]
 [ext_resource type="Texture2D" path="res://app/icons/delete.svg" id="3"]
 [ext_resource type="Texture2D" path="res://app/icons/edit.svg" id="4"]
+[ext_resource type="Texture2D" path="res://app/icons/settings.svg" id="5"]
+[ext_resource type="PackedScene" path="res://app/settings_window.tscn" id="6"]
 
 [sub_resource type="StyleBoxFlat" id="LogoShape"]
 corner_radius_top_left = 36
@@ -135,6 +137,18 @@ icon = ExtResource("3")
 icon_alignment = 1
 expand_icon = true
 
+[node name="Settings" type="Button" parent="Column"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "The debug view, and how the field sounds"
+theme_override_constants/icon_max_width = 20
+text = "Settings"
+icon = ExtResource("5")
+
+[node name="SettingsWindow" parent="." instance=ExtResource("6")]
+unique_name_in_owner = true
+
 [node name="Files" type="FileDialog" parent="."]
 title = "Open a File"
 file_mode = 0
@@ -179,3 +193,4 @@ ok_button_text = "Delete"
 [connection signal="confirmed" from="ConfirmNew" to="." method="create_new"]
 [connection signal="text_submitted" from="ConfirmNew/NewName" to="." method="create_new" unbinds=1]
 [connection signal="confirmed" from="ConfirmDelete" to="." method="delete_pending"]
+[connection signal="pressed" from="Column/Settings" to="SettingsWindow" method="show"]

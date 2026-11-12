@@ -1,14 +1,10 @@
 extends Node
-## Lets the person hear the field with their hands. A sine tone follows each
+## Lets the person hear the field with their hands. A tone follows each
 ## tracked hand's index fingertip: higher where the field there is stronger,
 ## and silent outside it. Each hand's tone leans toward its own side. Works
 ## with whatever hands the volume has, which on visionOS means while it is
-## immersive.
-
-## The tone at the weakest and strongest values, in hertz. Pitch rises
-## evenly in octaves between them.
-const PITCH := Vector2(220.0, 880.0)
-const LOUDNESS := 0.2
+## immersive. Its waveform, loudness and pitch range are in the settings;
+## pitch rises evenly in octaves between the lowest and highest.
 ## How far each hand's tone leans toward its side, from 0 to 1.
 const PAN := 0.6
 ## How quickly pitch and loudness follow the fingertip, per second: fast
@@ -28,7 +24,11 @@ var _voices := {}
 func _process(_delta: float) -> void:
 	if volume == null:
 		return
-	var hands := volume.get_hands()
+	# Turning the sound off lets every tone fade out.
+	var hands: Array[XRHandTracker] = []
+	if Settings.sound:
+		hands = volume.get_hands()
+	var loudness := db_to_linear(Settings.loudness)
 	for hand in hands:
 		if not _voices.has(hand):
 			_voices[hand] = _add_voice(hand)
@@ -38,10 +38,10 @@ func _process(_delta: float) -> void:
 		if hand in hands:
 			var tip := volume.get_hand_joint(hand, XRHandTracker.HAND_JOINT_INDEX_FINGER_TIP).origin
 			value = touch.value_of(touch.cell_at(tip))
-		voice.target_loudness = LOUDNESS if value > 0.0 else 0.0
+		voice.target_loudness = loudness if value > 0.0 else 0.0
 		if value > 0.0:
-			voice.target_pitch = PITCH.x * pow(PITCH.y / PITCH.x, value)
-		_fill(voice)
+			voice.target_pitch = Settings.low_pitch * pow(Settings.high_pitch / Settings.low_pitch, value)
+		_fill(voice, Settings.waveform)
 
 
 func _add_voice(hand: XRHandTracker) -> Dictionary:
@@ -59,16 +59,17 @@ func _add_voice(hand: XRHandTracker) -> Dictionary:
 		# Equal-power gains for the left and right channels.
 		gains = Vector2(cos((1.0 + side * PAN) * PI / 4.0), sin((1.0 + side * PAN) * PI / 4.0)),
 		phase = 0.0,
-		pitch = PITCH.x,
-		target_pitch = PITCH.x,
+		pitch = Settings.low_pitch,
+		target_pitch = Settings.low_pitch,
 		loudness = 0.0,
 		target_loudness = 0.0,
 	}
 
 
 ## Writes as much of the voice's tone as its player has room for, easing
-## toward the target pitch and loudness sample by sample.
-func _fill(voice: Dictionary) -> void:
+## toward the target pitch and loudness sample by sample. Each waveform
+## peaks at about one, and starts its cycle as a sine does.
+func _fill(voice: Dictionary, waveform: int) -> void:
 	var playback: AudioStreamGeneratorPlayback = voice.playback
 	var frames := playback.get_frames_available()
 	if frames == 0:
@@ -86,9 +87,36 @@ func _fill(voice: Dictionary) -> void:
 	for i in frames:
 		pitch += (target_pitch - pitch) * follow
 		loudness += (target_loudness - loudness) * follow
-		phase = fmod(phase + pitch / rate, 1.0)
-		buffer[i] = gains * (sin(phase * TAU) * loudness)
+		var step := pitch / rate
+		phase = fmod(phase + step, 1.0)
+		var sample := 0.0
+		match waveform:
+			Settings.Waveform.SINE:
+				sample = sin(phase * TAU)
+			Settings.Waveform.SAWTOOTH:
+				sample = 1.0 - 2.0 * phase + _blep(phase, step)
+			Settings.Waveform.SQUARE:
+				sample = (1.0 if phase < 0.5 else -1.0) + _blep(phase, step) - _blep(fmod(phase + 0.5, 1.0), step)
+			Settings.Waveform.TRIANGLE:
+				sample = 4.0 * absf(fmod(phase + 0.75, 1.0) - 0.5) - 1.0
+			Settings.Waveform.NOISE:
+				sample = randf_range(-1.0, 1.0)
+		buffer[i] = gains * (sample * loudness)
 	playback.push_buffer(buffer)
 	voice.phase = phase
 	voice.pitch = pitch
 	voice.loudness = loudness
+
+
+## Rounds off a jump of two at the start of a cycle, so a sawtooth's or a
+## square's edges don't alias at high pitch: PolyBLEP, which keeps mostly
+## the harmonics the sample rate can carry, as Hyposelenia's additive
+## waveforms do. [param step] is the cycle's share of one sample.
+static func _blep(phase: float, step: float) -> float:
+	if phase < step:
+		var x := phase / step
+		return x + x - x * x - 1.0
+	if phase > 1.0 - step:
+		var x := (phase - 1.0) / step
+		return x * x + x + x + 1.0
+	return 0.0
