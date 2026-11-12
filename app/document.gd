@@ -89,6 +89,10 @@ var _drag := -1
 var _drag_across := Vector3.RIGHT
 ## A gesture that selected a label must not also turn the model.
 var _label_touch := -1
+## Touches that have ended, until their index presses again: a drag event
+## can arrive after its touch ends, and must not start a drag no release
+## will end.
+var _ended := {}
 var _drag_start := Vector3.ZERO
 var _drag_yaw := 0.0
 var _drag_tilt := 0.0
@@ -368,6 +372,10 @@ func _exit_tree() -> void:
 ## turns the view instead.
 func turn_by_drag(camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape: int) -> void:
 	if event.is_class("InputEventSpatialTouch"):
+		if event.get("pressed") and not event.get("canceled"):
+			_ended.erase(event.get("index"))
+		else:
+			_ended[event.get("index")] = true
 		if _label_touch != -1 and event.get("index") == _label_touch:
 			if not event.get("pressed") or event.get("canceled"):
 				_label_touch = -1
@@ -390,6 +398,8 @@ func turn_by_drag(camera: Node, event: InputEvent, _position: Vector3, _normal: 
 	if not event.is_class("InputEventSpatialDrag"):
 		return
 	if _label_touch != -1 and event.get("index") == _label_touch:
+		return
+	if _ended.has(event.get("index")):
 		return
 	var at: Vector3 = event.get("world_position")
 	if _drag < 0 and event.get("kind") != KIND_TOUCH:
