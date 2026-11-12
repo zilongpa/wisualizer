@@ -21,6 +21,13 @@ signal immersive_changed(immersive: bool)
 ## near face this far in front of them.
 const IMMERSIVE_HEIGHT := 1.1
 const IMMERSIVE_GAP := 0.5
+## The bar under the box that moves it in the immersive space, like a
+## window's: its size, its gap below the box's front edge, and how far below
+## the box's center it goes at most, so a tall box keeps it in reach; in
+## meters.
+const HANDLE_SIZE := Vector2(0.16, 0.024)
+const HANDLE_GAP := 0.05
+const HANDLE_DROP := 0.4
 
 const CAMERA_CLASS := &"RealityVolumeCamera3D"
 
@@ -37,6 +44,14 @@ var _immersive := false
 var _immersive_size := Vector3.ZERO
 ## True while this backend reopens the Window itself.
 var _switching := false
+## Where the box's center is in the immersive space, in meters from where
+## the person's space starts.
+var _space_center := Vector3.ZERO
+## The bar that moves the box there, the touch dragging it, and where that
+## touch holds the box: the center's offset from it, in meters.
+var _handle: StaticBody3D
+var _handle_touch := -1
+var _handle_grab := Vector3.ZERO
 
 
 func _init(volume: SpatialVolume3D) -> void:
@@ -126,11 +141,18 @@ func set_immersive(immersive: bool) -> void:
 		_head.name = "Head"
 		_origin.add_child(_head)
 		_origin.current = true
+		_space_center = Vector3(0.0, IMMERSIVE_HEIGHT, -(IMMERSIVE_GAP + _immersive_size.z * 0.5))
+		_handle = _make_handle()
+		_volume.add_child(_handle)
 		_place_in_space()
 	else:
 		_origin.remove_child(_head)
 		_head.free()
 		_head = null
+		_volume.remove_child(_handle)
+		_handle.free()
+		_handle = null
+		_handle_touch = -1
 		_origin.world_scale = 1.0
 		_origin.transform = Transform3D.IDENTITY
 		_volume.add_child(_camera)
@@ -145,9 +167,63 @@ func set_immersive(immersive: bool) -> void:
 ## volume's units into meters.
 func _place_in_space() -> void:
 	var meters_per_unit := _immersive_size[_volume.keep_aspect] / _volume.size
-	var center := Vector3(0.0, IMMERSIVE_HEIGHT, -(IMMERSIVE_GAP + _immersive_size.z * 0.5))
 	_origin.world_scale = 1.0 / meters_per_unit
-	_origin.global_transform = Transform3D(Basis(), _volume.global_position - center / meters_per_unit)
+	_origin.global_transform = Transform3D(Basis(), _volume.global_position - _space_center / meters_per_unit)
+	# The bar is built in meters, under the box's front edge, or in front of
+	# the box when that is out of reach.
+	var below := Vector3(0.0, -minf(_immersive_size.y * 0.5 + HANDLE_GAP, HANDLE_DROP), _immersive_size.z * 0.5)
+	_handle.transform = Transform3D(Basis.from_scale(Vector3.ONE / meters_per_unit), below / meters_per_unit)
+
+
+## A pill the person pinches and drags to move the box, with the system's
+## hover highlight.
+func _make_handle() -> StaticBody3D:
+	var handle := StaticBody3D.new()
+	handle.name = "Handle"
+	var pill := CapsuleMesh.new()
+	pill.radius = HANDLE_SIZE.y * 0.5
+	pill.height = HANDLE_SIZE.x
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(1, 1, 1, 0.6)
+	pill.material = material
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = pill
+	mesh.rotation.z = PI / 2.0
+	handle.add_child(mesh)
+	# Easier to catch than the pill itself.
+	var box := BoxShape3D.new()
+	box.size = Vector3(HANDLE_SIZE.x + 0.04, HANDLE_SIZE.y + 0.04, HANDLE_SIZE.y + 0.04)
+	var shape := CollisionShape3D.new()
+	shape.shape = box
+	handle.add_child(shape)
+	if ClassDB.class_exists(&"RealityHoverEffect3D"):
+		handle.add_child(ClassDB.instantiate(&"RealityHoverEffect3D"))
+	handle.input_event.connect(_on_handle_input)
+	return handle
+
+
+## Moves the box with the hand that pinches the bar, keeping where the hand
+## holds it.
+func _on_handle_input(_camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape: int) -> void:
+	if event.is_class("InputEventSpatialTouch"):
+		var index: int = event.get("index")
+		if event.get("pressed") and not event.get("canceled"):
+			if _handle_touch < 0:
+				_handle_touch = index
+				_handle_grab = _space_center - _to_space(event.get("world_position"))
+		elif index == _handle_touch:
+			_handle_touch = -1
+	elif event.is_class("InputEventSpatialDrag") and event.get("index") == _handle_touch:
+		_space_center = _to_space(event.get("world_position")) + _handle_grab
+		_place_in_space()
+
+
+## Where [param point], in the Window's world, is in the immersive space,
+## in meters.
+func _to_space(point: Vector3) -> Vector3:
+	return (point - _origin.global_position) / _origin.world_scale
 
 
 ## The person left the immersive space, which hid the Window: bring the
