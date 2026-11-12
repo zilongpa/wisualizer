@@ -47,10 +47,12 @@ var _switching := false
 ## Where the box's center is in the immersive space, in meters from where
 ## the person's space starts.
 var _space_center := Vector3.ZERO
-## The bar that moves the box there, the touch dragging it, and where that
-## touch holds the box: the center's offset from it, in meters.
+## The bar that moves the box there, the touch dragging it and the hand
+## making it, and where that hand holds the box: the center's offset from
+## its pinch, in meters.
 var _handle: StaticBody3D
 var _handle_touch := -1
+var _handle_hand: XRHandTracker
 var _handle_grab := Vector3.ZERO
 
 
@@ -157,6 +159,7 @@ func set_immersive(immersive: bool, show := false) -> void:
 		_handle.free()
 		_handle = null
 		_handle_touch = -1
+		_handle_hand = null
 		_origin.world_scale = 1.0
 		_origin.transform = Transform3D.IDENTITY
 		_volume.add_child(_camera)
@@ -209,25 +212,43 @@ func _make_handle() -> StaticBody3D:
 
 
 ## Moves the box with the hand that pinches the bar, keeping where the hand
-## holds it.
+## holds it. The hand is followed by its own tracking, which is already in
+## the immersive space: the events' positions come through the origin, which
+## the move itself changes, and a frame late, so following them would make
+## each move push the box further.
 func _on_handle_input(_camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape: int) -> void:
 	if event.is_class("InputEventSpatialTouch"):
 		var index: int = event.get("index")
 		if event.get("pressed") and not event.get("canceled"):
 			if _handle_touch < 0:
-				_handle_touch = index
-				_handle_grab = _space_center - _to_space(event.get("world_position"))
+				_handle_hand = _hand_of(event)
+				if _handle_hand != null:
+					_handle_touch = index
+					_handle_grab = _space_center - _pinch_of(_handle_hand)
 		elif index == _handle_touch:
 			_handle_touch = -1
+			_handle_hand = null
 	elif event.is_class("InputEventSpatialDrag") and event.get("index") == _handle_touch:
-		_space_center = _to_space(event.get("world_position")) + _handle_grab
-		_place_in_space()
+		if _handle_hand.has_tracking_data:
+			_space_center = _pinch_of(_handle_hand) + _handle_grab
+			_place_in_space()
 
 
-## Where [param point], in the Window's world, is in the immersive space,
-## in meters.
-func _to_space(point: Vector3) -> Vector3:
-	return (point - _origin.global_position) / _origin.world_scale
+## The tracked hand making a spatial event, or null.
+func _hand_of(event: InputEvent) -> XRHandTracker:
+	if not event.get("has_chirality"):
+		return null
+	var left: bool = event.call("get_chirality") == 0
+	var hand := XRServer.get_tracker(&"/user/hand_tracker/left" if left else &"/user/hand_tracker/right") as XRHandTracker
+	return hand if hand != null and hand.has_tracking_data else null
+
+
+## Where a hand pinches, between its thumb and index fingertips, in meters
+## in the immersive space.
+static func _pinch_of(hand: XRHandTracker) -> Vector3:
+	var thumb := hand.get_hand_joint_transform(XRHandTracker.HAND_JOINT_THUMB_TIP).origin
+	var index := hand.get_hand_joint_transform(XRHandTracker.HAND_JOINT_INDEX_FINGER_TIP).origin
+	return (thumb + index) * 0.5
 
 
 ## The person left the immersive space, which hid the Window: bring the
