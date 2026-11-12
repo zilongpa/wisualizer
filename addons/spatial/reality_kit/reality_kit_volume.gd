@@ -123,11 +123,15 @@ func get_hand_joint(hand: XRHandTracker, joint: XRHandTracker.HandJoint) -> Tran
 	return _origin.global_transform * pose
 
 
-func set_immersive(immersive: bool) -> void:
+## Shows the volume as the immersive space, or back as a volume. It opens
+## again only if it was showing, unless [param show] asks for it: the
+## Window gets its ID as it opens, and anything placed by it, such as an
+## ornament, needs that ID by the time [signal immersive_changed] comes.
+func set_immersive(immersive: bool, show := false) -> void:
 	if immersive == _immersive:
 		return
 	var window := _volume.get_window()
-	var shown := window.visible
+	var shown := window.visible or show
 	_switching = true
 	# Closes the volume or the space; showing the Window again opens the other.
 	window.hide()
@@ -234,10 +238,8 @@ func _on_visibility_changed() -> void:
 
 
 func _leave_space() -> void:
-	if not _immersive:
-		return
-	set_immersive(false)
-	_volume.get_window().show()
+	if _immersive:
+		set_immersive(false, true)
 
 
 func get_controllers() -> Array[XRController3D]:
