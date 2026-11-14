@@ -1,6 +1,6 @@
 extends MarginContainer
 ## The app's first window: a library of the ZIPs added so far. Each ZIP opens
-## in its own document windows, so several can be open at once.
+## a volume per model, so several can be open at once.
 
 const Document := preload("res://app/document.tscn")
 const Workspace := preload("res://app/workspace.tscn")
@@ -102,11 +102,19 @@ func open_zip(path: String) -> void:
 		opened.save(OPENED_FILE)
 		show_library()
 
-	var document := Document.instantiate()
-	add_child(document)
-	var error: String = document.open(path)
+	# A volume for each of its models; the first has the notes.
+	var check := Meta.new()
+	var error := check.open(path)
+	var count := check.models.size()
+	check.close()
+	for index in count:
+		var document := Document.instantiate()
+		add_child(document)
+		error = document.open(path, index, index == 0)
+		if not error.is_empty():
+			document.queue_free()
+			break
 	if not error.is_empty():
-		document.queue_free()
 		show_error("Can't open %s" % path.get_file().get_basename(), error)
 
 

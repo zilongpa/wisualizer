@@ -1,7 +1,8 @@
 # Wisualizer
 
 An Apple Vision Pro teaching app (GaTech VIP): open a ZIP of Ansys EnSight
-results and play its frames in a 3D volume, with notes beside it. The same
+results and play each of its models in a 3D volume of its own, with notes
+beside them. The same
 scenes run on desktop with an orbit camera, where a workspace also makes the
 ZIPs, and are meant to run on Quest later.
 
@@ -50,35 +51,40 @@ opens. On Apple Vision Pro, pinch and drag the model to turn it, like Apple's
 globe: sideways turns it about the vertical, up and down tilts it, and the tilt
 springs back when you let go. The volume makes room for it to turn any way. On
 desktop, drag to orbit the view. The bar below it plays, pauses and scrubs the
-frames, and shows or hides the notes and the options (speed, labels, debug
-view); playback starts over after the last frame. With a keyboard, Space plays
+frames, and shows or hides the notes and the options (speed, parts, labels,
+field); playback starts over after the last frame. **Settings** in the library
+turns on the debug view and sets how the field sounds under a fingertip. With a keyboard, Space plays
 or pauses and the arrow keys step a frame.
 
 ## ZIPs
 
-A ZIP has a `meta.json` that says where its models, fields, notes and images
-are; [docs/zip-format.md](docs/zip-format.md) describes it. A model is one
-GLB, or a folder with a GLB per frame, which plays a few frames at a time
-without the whole ZIP in memory. A ZIP can have several models and several
-fields.
+A ZIP has a `meta.json` that says where its models, notes and images are;
+[docs/zip-format.md](docs/zip-format.md) describes it. Each model opens in a
+volume of its own, so several can sit side by side. A model has parts, its
+GLBs, and fields, its bricks; a part or field that changes has a file per
+time step, and plays a few steps at a time without the whole ZIP in memory.
+A model's timeline is the solver times its files have: nothing lists frames.
 
 ### Making one
 
 The desktop build makes ZIPs in a workspace: **New…** in the library starts an
-empty one, and the pencil beside a ZIP opens it there.
+empty one, and the pencil beside a ZIP opens it there. The sidebar lists the
+models: **+** adds one, and its name and order are set there. The first four
+pages show the model picked there.
 
-- **Frames**: the timeline. Importing GLBs or bricks with solver times fills
-  it in when it's empty; times can be changed, and frames added or removed.
-- **Models**: **Import GLBs…** takes the GLBs EnSight exports. Pick all of a
-  model's GLBs, one per time step, named alike but for the step's number,
-  and they become a model that changes; a GLB on its own becomes one that
-  doesn't. Rename and reorder them here.
+- **Timeline**: the model's frames, one for each solver time its GLBs and
+  bricks have, and which of them has a step at each. There is nothing to set.
+- **Parts**: **Import GLBs…** takes the GLBs EnSight exports. Pick all of a
+  part's GLBs, one per time step, named alike but for the step's number, and
+  they become a part that changes at their solver times; a GLB on its own
+  becomes one that doesn't. Rename and reorder them here.
 - **Fields**: **Import bricks…** takes the brick headers EnSight writes beside
-  each brick (`*_meta0001` and so on), one field per variable. Set the name,
-  quantity, unit and range. EnSight doesn't say what scale its bricks are at,
-  so the box is fitted to the models; it can also be typed in.
+  each brick (`*_meta0001` and so on), one field per variable, each brick at
+  its solver time: the steps can come in any order, a few at a time. Set the
+  name, quantity, unit and range. EnSight doesn't say what scale its bricks are
+  at, so the box is fitted to the parts; it can also be typed in.
 - **Labels**: text at points in the volume. **Add label** puts one at the
-  models' center; type its text and its point, in the models' units, which the
+  parts' center; type its text and its point, in the model's units, which the
   page shows the extent of. A radius and the frames it shows at are optional.
 - **Images**: what the notes show. **Insert into notes** adds an `[img]` tag.
 - **Notes**: BBCode on the left, as it will look on the right.
@@ -101,7 +107,7 @@ Short formulas can also be plain text, such as `Re = ρUD/μ`.
 SVG images, such as formulas exported from LaTeX, stay sharp at any size, and
 their `currentColor` takes the notes' text color.
 
-`[url=frame:9]frame 9[/url]` is a link that pauses on frame 9.
+`[url=frame:9]frame 9[/url]` is a link that pauses the first model on frame 9.
 
 ## Code
 
@@ -109,12 +115,12 @@ their `currentColor` takes the notes' text color.
 | --- | --- |
 | `app/launcher.gd`, `app/launcher.tscn` | Library: add, make, edit, open and delete ZIPs |
 | `app/meta.gd` | Reads a ZIP through its `meta.json` |
-| `app/workspace.gd`, `app/workspace.tscn` | Desktop editor for a ZIP: frames, models, fields, images and notes |
+| `app/workspace.gd`, `app/workspace.tscn` | Desktop editor for a ZIP: models, their parts, fields and labels, images and notes |
 | `app/draft.gd` | What the workspace edits, and saves as a ZIP |
 | `app/glb_info.gd`, `app/bov.gd` | Read what the workspace needs from a GLB's JSON and an EnSight brick header |
 | `app/native_dialogs.gd` | Whether alerts and file pickers are the system's or Godot's |
-| `app/document.gd`, `app/document.tscn` | One opened ZIP: volume, notes, controls and options ornaments |
-| `app/model_frames.gd` | One model, loaded a few frames at a time |
+| `app/document.gd`, `app/document.tscn` | One model of an opened ZIP: volume, notes, controls and options ornaments |
+| `app/model_frames.gd` | One part, loaded a few frames at a time |
 | `app/labels.gd` | A volume's labels: a dot at each point, and its text while a controller or the pointer is near |
 | `app/resize_hint.gd` | Corner marks that show the volume can be resized |
 | `app/icons/` | Button icons ([IconPark](https://iconpark.oceanengine.com/)) |

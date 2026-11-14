@@ -4,20 +4,29 @@ What Wisualizer opens is a ZIP with a `meta.json` at its root that says where
 everything is. Nothing is found by guessing at file names, sizes or contents,
 and every path in `meta.json` is relative to the ZIP's root.
 
+A ZIP holds one or more models. Each model opens in a volume of its own, with
+its own controls, timeline, fields and labels, so the person can set models
+side by side, such as the bare geometry in one and the same geometry with its
+field in another. The notes are the ZIP's, shown beside the first model.
+
 ```
 hall-sensor.zip
 ├── meta.json
 ├── models/
-│   ├── sensor.glb            a model that doesn't change: one GLB
-│   └── field-lines/          a model that does: a folder, one GLB per frame
-│       ├── 0001.glb
+│   ├── sensor/                   a model: a folder of its own
+│   │   ├── parts/
+│   │   │   ├── housing.glb       a part that doesn't change: one GLB
+│   │   │   └── field-lines/      a part that does: one GLB per time step
+│   │   │       ├── 0001.glb
+│   │   │       └── …
+│   │   └── fields/
+│   │       └── B/                a field: one brick per time step
+│   │           ├── 0001.bin
+│   │           └── …
+│   └── coil/
 │       └── …
-├── fields/
-│   └── B/                    a field: a folder, one brick per frame
-│       ├── 0001.bin
-│       └── …
-├── notes.txt                 optional
-└── images/                   optional: what the notes show
+├── notes.txt                     optional
+└── images/                       optional: what the notes show
 ```
 
 The desktop build makes and edits these ZIPs in a workspace; see the README.
@@ -28,26 +37,31 @@ It copies GLBs and bricks into the ZIP as they are.
 ```json
 {
   "title": "Hall sensor",
-  "frames": [{"time": 0.0}, {"time": 1.0}],
   "models": [
-    {"name": "Sensor", "path": "models/sensor.glb"},
-    {"name": "Field lines", "path": "models/field-lines"}
-  ],
-  "fields": [
     {
-      "name": "B",
-      "quantity": "Magnetic flux density",
-      "unit": "T",
-      "range": [0.0000938, 0.113],
-      "cells": [128, 128, 128],
-      "box": {"origin": [-40, -40, -40], "size": [80, 80, 80]},
-      "path": "fields/B"
+      "name": "Sensor",
+      "parts": [
+        {"name": "Housing", "path": "models/sensor/parts/housing.glb"},
+        {"name": "Field lines", "path": "models/sensor/parts/field-lines", "times": [0.0, 0.5, 1.0]}
+      ],
+      "fields": [
+        {
+          "name": "B",
+          "quantity": "Magnetic flux density",
+          "unit": "T",
+          "range": [0.0000938, 0.113],
+          "cells": [128, 128, 128],
+          "box": {"origin": [-40, -40, -40], "size": [80, 80, 80]},
+          "path": "models/sensor/fields/B",
+          "times": [0.0, 1.0]
+        }
+      ],
+      "field": "B",
+      "labels": [
+        {"text": "Hall element", "position": [0, 0, 0]},
+        {"text": "The field peaks here", "position": [0, 0, 12], "radius": 4, "frames": [2, 3]}
+      ]
     }
-  ],
-  "field": "B",
-  "labels": [
-    {"text": "Hall element", "position": [0, 0, 0]},
-    {"text": "The field peaks here", "position": [0, 0, 12], "radius": 4, "frames": [6, 9]}
   ],
   "notes": "notes.txt"
 }
@@ -55,22 +69,37 @@ It copies GLBs and bricks into the ZIP as they are.
 
 | Key | Meaning |
 | --- | --- |
-| `title` | Shown as the volume's title. |
-| `frames` | The timeline. `time` is the solver time; frames play in this order. |
-| `models` | The geometry, all shown together in one volume, each one with a switch. A model's `path` is a GLB, shown at every frame, or a folder of GLBs, one per frame. |
-| `fields` | Values on a regular grid, which the debug view shows and controllers feel. |
-| `field` | Optional. The name of the field shown first; otherwise the first one. |
-| `labels` | Optional. Text shown at points in the volume; see [Labels](#labels). |
+| `title` | Shown as each volume's title, with its model's name when there are several models. |
+| `models` | The models, each opening in its own volume, in this order. |
 | `notes` | Optional. The notes, in Godot BBCode; see the README. |
 
-### Models
+Each model:
 
-Each GLB is an ordinary glTF binary in the model's units, which every model
-and field in the ZIP shares. A model that is a folder is loaded a few frames
-at a time while it plays, so the ZIP needn't fit in memory all at once. A
-folder's files, sorted by name, are the frames in order, and there are as
-many as there are frames. Models are listed, and switched, in the order of
-`models`.
+| Key | Meaning |
+| --- | --- |
+| `name` | Shown in its volume's title when there are several models. |
+| `parts` | Its geometry, all shown together, each with a switch. |
+| `fields` | Optional. Values on a regular grid, which the debug view shows, and controllers and hands feel. |
+| `field` | Optional. The name of the field shown first; otherwise the first one. |
+| `labels` | Optional. Text shown at points in the volume; see [Labels](#labels). |
+
+### Timeline
+
+Nothing in a ZIP lists frames: each model's timeline is every solver time its
+parts and fields have, in order. A part or field that changes is a folder of
+files, sorted by name, with `times` giving each file's solver time, as
+EnSight writes them. At each frame it shows its step at that time, or else
+its last one before it, or its first one before it starts; so parts and
+fields needn't share their time steps. A model with nothing that changes has
+one frame.
+
+### Parts
+
+Each GLB is an ordinary glTF binary in the model's units, which its parts and
+fields share. A part's `path` is a GLB, shown at every frame, or a folder of
+GLBs with `times`. A folder is loaded a few steps at a time while it plays,
+so the ZIP needn't fit in memory all at once. Parts are listed, and switched,
+in the order of `parts`.
 
 ### Fields
 
@@ -81,7 +110,7 @@ many as there are frames. Models are listed, and switched, in the order of
 | `range` | The values the bytes span: byte 1 is `range[0]`, byte 255 is `range[1]`, linearly. Byte 0 is a cell with no value. |
 | `cells` | The grid's size, in cells along x, y and z. |
 | `box` | Where the grid is, in model units: `origin` is its corner, `size` its extent. Optional `axes`, three unit vectors, turn it; they default to x, y and z. |
-| `path` | A folder of bricks, one per frame, sorted by name like a model's. Each brick is `cells` bytes in all, x fastest, then y, then z. |
+| `path`, `times` | A folder of bricks with their solver times, like a part's. Each brick is `cells` bytes in all, x fastest, then y, then z. |
 
 ### Labels
 
@@ -100,7 +129,7 @@ that selects a label does not also rotate the model.
 | `text` | What the label says, as plain text. Long lines wrap, and `\n` starts a new one. |
 | `position` | The point, `[x, y, z]` in model units. |
 | `radius` | Optional. How near a controller's tip comes for the text to show, in model units; otherwise 3 cm in the volume. |
-| `frames` | Optional. `[first, last]`, counted from 1: the frames the label shows at. `[n]` is one frame; without `frames`, every frame. Numbers must be whole, within the timeline, and in order; an empty array is invalid. |
+| `frames` | Optional. `[first, last]`, counted from 1: the frames of its model's timeline the label shows at. `[n]` is one frame; without `frames`, every frame. Numbers must be whole, within the timeline, and in order; an empty array is invalid. |
 
-Deleting a frame in the workspace keeps labels attached to the remaining
-frames. A label with no remaining frames is removed with its frame.
+The workspace keeps a label at the same solver times as steps are imported or
+removed.

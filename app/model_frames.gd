@@ -1,8 +1,8 @@
 extends Node3D
-## One of a ZIP's models: shows its GLB for the current frame, and keeps
+## One of a model's parts: shows its GLB for the current frame, and keeps
 ## only the frames near it in memory. Upcoming frames load on worker threads
 ## and wait hidden, so a frame is ready, on visionOS in RealityKit too, by
-## the time it shows. A model that doesn't change is one GLB, kept loaded.
+## the time it shows. A part that doesn't change is one GLB, kept loaded.
 
 const Meta := preload("res://app/meta.gd")
 ## How many frames after and before the current one are kept loaded.
@@ -10,7 +10,7 @@ const AHEAD := 3
 const BEHIND := 1
 
 var _zip_path := ""
-var _model: Meta.Model
+var _part: Meta.Part
 ## Loaded GLBs by file, and the worker tasks loading the others.
 var _scenes := {}
 var _tasks := {}
@@ -22,21 +22,21 @@ var _mutex := Mutex.new()
 var _reach := []
 
 
-func setup(zip_path: String, model: Meta.Model) -> void:
+func setup(zip_path: String, part: Meta.Part) -> void:
 	_zip_path = zip_path
-	_model = model
-	name = model.name.validate_node_name()
+	_part = part
+	name = part.name.validate_node_name()
 
 
 ## Shows frame [param frame], loading it now if it isn't yet, and starts
 ## loading the frames around it.
 func show_frame(frame: int) -> void:
-	var count := _model.files.size()
+	var count := _part.files.size()
 	var wanted := {}
 	for offset in range(-BEHIND, AHEAD + 1):
 		# Playback loops, so the frames after the last are the first ones.
-		wanted[_model.files[posmod(frame + offset, count)]] = true
-	var current := _model.files[frame]
+		wanted[_part.files[posmod(frame + offset, count)]] = true
+	var current := _part.files[frame]
 	if not _scenes.has(current):
 		if _tasks.has(current):
 			WorkerThreadPool.wait_for_task_completion(_tasks[current])

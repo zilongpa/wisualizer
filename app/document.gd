@@ -1,8 +1,9 @@
 extends Node
-## One opened ZIP, shown as a volume the person can place anywhere; see
-## docs/zip-format.md. Its notes, if it has any, open in a window of their
-## own beside the volume, which the person can move and resize, and its
-## controls sit along the volume's bottom front edge.
+## One of an opened ZIP's models, shown as a volume the person can place
+## anywhere; see docs/zip-format.md. The ZIP's notes, if it has any, open
+## beside its first model's volume in a window of their own, which the
+## person can move and resize, and each volume's controls sit along its
+## bottom front edge.
 
 const FPS := 4.0
 const PLAY_ICON := preload("res://app/icons/play.svg")
@@ -57,8 +58,10 @@ const KIND_TOUCH := 0
 @onready var speed_group: ButtonGroup = $Model/Options/Bar/Speeds/Row/Speed0.button_group
 
 var meta := Meta.new()
-## One per model, showing it at the current frame.
-var models: Array[ModelFrames] = []
+## The model this volume shows.
+var entry: Meta.Model
+## One per part, showing it at the current frame.
+var parts: Array[ModelFrames] = []
 ## The field the debug view shows, and controllers and hands feel.
 var field_index := 0
 var frame_count := 0
@@ -126,21 +129,23 @@ func _on_window_input(event: InputEvent) -> void:
 		step(1)
 
 
-## Opens the ZIP at [param path]. Returns an empty string, or what is
-## wrong with it.
-func open(path: String) -> String:
+## Opens model [param model_index] of the ZIP at [param path], with the ZIP's
+## notes if [param with_notes]. Returns an empty string, or what is wrong
+## with the ZIP.
+func open(path: String, model_index := 0, with_notes := true) -> String:
 	var error := meta.open(path)
 	if not error.is_empty():
 		return error
-	frame_count = meta.times.size()
-	field_index = meta.first_field
-	for index in meta.fields.size():
-		_peak_tasks.append(WorkerThreadPool.add_task(_measure_peak.bind(path, index, meta.fields[index].files)))
-	for entry in meta.models:
+	entry = meta.models[model_index]
+	frame_count = entry.times.size()
+	field_index = entry.first_field
+	for index in entry.fields.size():
+		_peak_tasks.append(WorkerThreadPool.add_task(_measure_peak.bind(path, index, entry.fields[index].files)))
+	for part in entry.parts:
 		var frames := ModelFrames.new()
-		frames.setup(path, entry)
+		frames.setup(path, part)
 		content.add_child(frames)
-		models.append(frames)
+		parts.append(frames)
 	_add_model_switches()
 	_add_field_picker()
 	Settings.changed.connect(update_field)
@@ -153,14 +158,14 @@ func open(path: String) -> String:
 	probes.field = field
 	labels.touch = touch
 	labels.volume = volume
-	labels.set_labels(meta.labels)
-	labels_button.visible = not meta.labels.is_empty()
+	labels.set_labels(entry.labels)
+	labels_button.visible = not entry.labels.is_empty()
 	# A model that doesn't change has nothing to play.
 	for control: Control in [play_button, slider, counter, $Model/Options/Bar/SpeedLabel, $Model/Options/Bar/Speeds]:
 		control.visible = frame_count > 1
 	# The field picker follows the playback speed and the switches, if any.
-	var switches := models.size() > 1 or not meta.labels.is_empty()
-	var picker := meta.fields.size() > 1
+	var switches := parts.size() > 1 or not entry.labels.is_empty()
+	var picker := entry.fields.size() > 1
 	%Separator.visible = picker and (frame_count > 1 or switches)
 	options_button.visible = frame_count > 1 or switches or picker
 	_fit_options()
@@ -168,10 +173,10 @@ func open(path: String) -> String:
 	seek(0)
 
 	var text := ""
-	if not meta.notes.is_empty():
+	if with_notes and not meta.notes.is_empty():
 		var notes_text: RichTextLabel = %Text
 		text = notes_images.embed(meta.read(meta.notes).get_string_from_utf8(), meta.read, meta.notes, str(get_instance_id()), notes_text.get_theme_color(&"default_color"), notes_text.get_theme_font_size(&"normal_font_size"))
-	model.title = meta.title
+	model.title = meta.title if meta.models.size() < 2 else "%s – %s" % [meta.title, entry.name]
 	%Text.text = text
 	notes_button.visible = not text.is_empty()
 	immersive_button.visible = volume.can_be_immersive()
@@ -189,12 +194,12 @@ func open(path: String) -> String:
 	return ""
 
 
-## A switch for each model, in the options, when there's more than one.
+## A switch for each part, in the options, when there's more than one.
 func _add_model_switches() -> void:
-	if models.size() < 2:
+	if parts.size() < 2:
 		return
 	var bar: HBoxContainer = %Separator.get_parent()
-	for frames in models:
+	for frames in parts:
 		var switch := CheckButton.new()
 		switch.text = frames.name
 		switch.button_pressed = true
@@ -208,13 +213,13 @@ func _add_model_switches() -> void:
 
 ## A button for each field, in the options, when there's more than one.
 func _add_field_picker() -> void:
-	if meta.fields.size() < 2:
+	if entry.fields.size() < 2:
 		return
 	var bar: HBoxContainer = %Separator.get_parent()
 	var group := ButtonGroup.new()
-	for index in meta.fields.size():
+	for index in entry.fields.size():
 		var button := Button.new()
-		button.text = meta.fields[index].name
+		button.text = entry.fields[index].name
 		button.toggle_mode = true
 		button.button_group = group
 		button.button_pressed = index == field_index
@@ -312,7 +317,7 @@ func set_playing(value: bool) -> void:
 
 func seek(value: float) -> void:
 	frame = int(value)
-	for frames in models:
+	for frames in parts:
 		frames.show_frame(frame)
 	slider.set_value_no_signal(frame)
 	counter.text = "%d / %d" % [frame + 1, frame_count]
@@ -323,11 +328,11 @@ func seek(value: float) -> void:
 ## Shows the field box, and the field around each controller and hand, if
 ## the debug view is on in the settings. The field can be felt either way.
 func update_field() -> void:
-	if meta.fields.is_empty():
+	if entry.fields.is_empty():
 		field.visible = false
 		probes.visible = false
 		return
-	var current: Meta.Field = meta.fields[field_index]
+	var current: Meta.Field = entry.fields[field_index]
 	field.visible = Settings.debug
 	probes.visible = field.visible
 	probes.shown_field = current
@@ -354,7 +359,7 @@ func _measure_peak(path: String, index: int, files: PackedStringArray) -> void:
 
 
 func _set_peak(index: int, peak: int) -> void:
-	meta.fields[index].peak = peak
+	entry.fields[index].peak = peak
 	if index == field_index:
 		update_field()
 
@@ -467,28 +472,28 @@ func _place_turntable() -> void:
 ## past it.
 func fit() -> void:
 	var bounds := AABB()
-	for frames in models:
+	for frames in parts:
 		var box := frames.get_bounds()
 		if box.has_volume():
 			bounds = box if bounds.size == Vector3.ZERO else bounds.merge(box)
 	var boxes: Array[AABB] = []
-	for entry: Meta.Field in meta.fields:
-		boxes.append(entry.box * AABB(Vector3.ZERO, Vector3.ONE))
+	for each: Meta.Field in entry.fields:
+		boxes.append(each.box * AABB(Vector3.ZERO, Vector3.ONE))
 	if bounds.size == Vector3.ZERO:
 		for box in boxes:
 			bounds = box if bounds.size == Vector3.ZERO else bounds.merge(box)
 	# A document can contain just labels, with no model or field to frame.
-	if bounds.size == Vector3.ZERO and not meta.labels.is_empty():
-		bounds = AABB(meta.labels[0].position, Vector3.ZERO)
-		for label: Meta.PointLabel in meta.labels:
+	if bounds.size == Vector3.ZERO and not entry.labels.is_empty():
+		bounds = AABB(entry.labels[0].position, Vector3.ZERO)
+		for label: Meta.PointLabel in entry.labels:
 			bounds = bounds.expand(label.position)
 	_center = bounds.get_center()
 	_radius = 0.0
-	for frames in models:
+	for frames in parts:
 		_radius = maxf(_radius, frames.get_radius(_center))
 	if is_zero_approx(_radius):
 		_radius = maxf(bounds.size.length() * 0.5, 0.001)
-	for label: Meta.PointLabel in meta.labels:
+	for label: Meta.PointLabel in entry.labels:
 		_radius = maxf(_radius, label.position.distance_to(_center))
 	# The model is grabbed by its bounds, which stay inside the volume and
 	# leave the space around the model for moving the window.
