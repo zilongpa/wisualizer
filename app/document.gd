@@ -5,12 +5,12 @@ extends Node
 ## person can move and resize, and each volume's controls sit along its
 ## bottom front edge.
 
-const FPS := 4.0
 const PLAY_ICON := preload("res://app/icons/play.svg")
 const PAUSE_ICON := preload("res://app/icons/pause.svg")
 const SPEEDS := [0.5, 1.0, 2.0, 4.0]
 const Meta := preload("res://app/meta.gd")
 const ModelFrames := preload("res://app/model_frames.gd")
+const Playback := preload("res://app/playback.gd")
 const NotesImages := preload("res://app/notes_images.gd")
 ## Seconds a volume takes to open before the resize hint shows.
 const HINT_DELAY := 0.6
@@ -65,9 +65,10 @@ var parts: Array[ModelFrames] = []
 ## The field the debug view shows, and controllers and hands feel.
 var field_index := 0
 var frame_count := 0
-var frame := 0
-var playing := false
-var elapsed := 0.0
+## The frame of the model's timeline showing.
+var frame := -1
+## The clock this volume plays by, shared with the ZIP's other volumes.
+var clock: Playback
 ## The images the notes show, kept for as long as the document is open.
 var notes_images := NotesImages.new()
 ## The bars' sizes as ornaments, kept while they are windows of their own:
@@ -131,9 +132,10 @@ func _on_window_input(event: InputEvent) -> void:
 
 ## Opens model [param model_index] of the ZIP at [param path], with the ZIP's
 ## notes if [param with_notes], and beside the volume [param after] if
-## there is one, so a ZIP's volumes open side by side. Returns an empty
-## string, or what is wrong with the ZIP.
-func open(path: String, model_index := 0, with_notes := true, after: Window = null) -> String:
+## there is one, so a ZIP's volumes open side by side. It plays by
+## [param shared_clock], so they play together, or by a clock of its own.
+## Returns an empty string, or what is wrong with the ZIP.
+func open(path: String, model_index := 0, with_notes := true, after: Window = null, shared_clock: Playback = null) -> String:
 	var error := meta.open(path)
 	if not error.is_empty():
 		return error
@@ -171,7 +173,16 @@ func open(path: String, model_index := 0, with_notes := true, after: Window = nu
 	options_button.visible = frame_count > 1 or switches or picker
 	_fit_options()
 	slider.max_value = frame_count - 1
-	seek(0)
+	clock = shared_clock
+	if clock == null:
+		clock = Playback.new()
+		clock.times = entry.times
+		add_child(clock)
+	clock.hold()
+	clock.changed.connect(_follow_clock)
+	for button in speed_group.get_buttons():
+		button.pressed.connect(func() -> void: clock.set_speed(SPEEDS[button.get_index()]))
+	_follow_clock()
 
 	var text := ""
 	if with_notes and not meta.notes.is_empty():
@@ -194,7 +205,6 @@ func open(path: String, model_index := 0, with_notes := true, after: Window = nu
 	show_notes(notes_button.visible)
 	# Show that the volume can be resized, once it has finished opening.
 	create_tween().tween_callback(show_resize_hint).set_delay(HINT_DELAY)
-	set_playing(true)
 	return ""
 
 
@@ -293,12 +303,13 @@ func _on_immersive_changed(immersive: bool) -> void:
 
 
 func toggle_play() -> void:
-	set_playing(not playing)
+	clock.set_playing(not clock.playing)
 
 
-## Pauses and moves [param frames_by] frames, staying within the frames.
+## Pauses and moves [param frames_by] of the model's frames, staying within
+## them.
 func step(frames_by: int) -> void:
-	set_playing(false)
+	clock.set_playing(false)
 	seek(clampi(frame + frames_by, 0, frame_count - 1))
 
 
@@ -307,20 +318,32 @@ func step(frames_by: int) -> void:
 func open_link(target: Variant) -> void:
 	var link := str(target)
 	if link.begins_with("frame:"):
-		set_playing(false)
+		clock.set_playing(false)
 		seek(clampi(link.trim_prefix("frame:").to_int() - 1, 0, frame_count - 1))
 	else:
 		OS.shell_open(link)
 
 
-func set_playing(value: bool) -> void:
-	playing = value
-	elapsed = 0.0
-	play_button.icon = PAUSE_ICON if playing else PLAY_ICON
-
-
+## Sends the clock, and with it every volume of the ZIP, to frame
+## [param value] of this model's timeline.
 func seek(value: float) -> void:
-	frame = int(value)
+	clock.seek_time(entry.times[int(value)])
+
+
+## Shows what the clock says: the model's step at its time, whether it
+## plays, and how fast.
+func _follow_clock() -> void:
+	play_button.icon = PAUSE_ICON if clock.playing else PLAY_ICON
+	# Without signals a group doesn't let go of the button pressed before.
+	for button in speed_group.get_buttons():
+		button.set_pressed_no_signal(SPEEDS[button.get_index()] == clock.speed)
+	var at := Meta.step_at(entry.times, clock.time())
+	if at != frame:
+		_show_frame(at)
+
+
+func _show_frame(value: int) -> void:
+	frame = value
 	for frames in parts:
 		frames.show_frame(frame)
 	slider.set_value_no_signal(frame)
@@ -369,6 +392,9 @@ func _set_peak(index: int, peak: int) -> void:
 
 
 func _exit_tree() -> void:
+	if clock and clock.changed.is_connected(_follow_clock):
+		clock.changed.disconnect(_follow_clock)
+		clock.release()
 	for task in _peak_tasks:
 		WorkerThreadPool.wait_for_task_completion(task)
 	_peak_tasks.clear()
@@ -515,10 +541,3 @@ func fit() -> void:
 
 func _process(delta: float) -> void:
 	_ease_turn(delta)
-	if not playing or frame_count == 0:
-		return
-	elapsed += delta * FPS * SPEEDS[speed_group.get_pressed_button().get_index()]
-	# Playback starts over after the last frame.
-	while elapsed >= 1.0:
-		elapsed -= 1.0
-		seek((frame + 1) % frame_count)

@@ -5,6 +5,7 @@ extends MarginContainer
 const Document := preload("res://app/document.tscn")
 const Workspace := preload("res://app/workspace.tscn")
 const Meta := preload("res://app/meta.gd")
+const Playback := preload("res://app/playback.gd")
 const NativeDialogs := preload("res://app/native_dialogs.gd")
 ## Added ZIPs are copied here, so they can be opened again after the app
 ## restarts without access to where they came from.
@@ -102,20 +103,29 @@ func open_zip(path: String) -> void:
 		opened.save(OPENED_FILE)
 		show_library()
 
-	# A volume for each of its models; the first has the notes.
+	# A volume for each of its models, side by side and playing by one clock;
+	# the first has the notes.
 	var check := Meta.new()
 	var error := check.open(path)
 	var count := check.models.size()
+	var clock := Playback.new()
+	var times := PackedFloat64Array()
+	for model in check.models:
+		times.append_array(model.times)
+	clock.times = Meta.timeline(times)
+	add_child(clock)
 	check.close()
 	var previous: Window = null
 	for index in count:
 		var document := Document.instantiate()
 		add_child(document)
-		error = document.open(path, index, index == 0, previous)
+		error = document.open(path, index, index == 0, previous, clock)
 		if not error.is_empty():
 			document.queue_free()
 			break
 		previous = document.model
+	if previous == null:
+		clock.queue_free()
 	if not error.is_empty():
 		show_error("Can't open %s" % path.get_file().get_basename(), error)
 
