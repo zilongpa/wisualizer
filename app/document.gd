@@ -130,9 +130,10 @@ func _on_window_input(event: InputEvent) -> void:
 
 
 ## Opens model [param model_index] of the ZIP at [param path], with the ZIP's
-## notes if [param with_notes]. Returns an empty string, or what is wrong
-## with the ZIP.
-func open(path: String, model_index := 0, with_notes := true) -> String:
+## notes if [param with_notes], and beside the volume [param after] if
+## there is one, so a ZIP's volumes open side by side. Returns an empty
+## string, or what is wrong with the ZIP.
+func open(path: String, model_index := 0, with_notes := true, after: Window = null) -> String:
 	var error := meta.open(path)
 	if not error.is_empty():
 		return error
@@ -184,6 +185,9 @@ func open(path: String, model_index := 0, with_notes := true) -> String:
 		# Only the notes, options and immersive buttons are left.
 		_fit_width(controls, play_button.get_parent())
 	fit()
+	if after:
+		model.placement = Window.PLACEMENT_TRAILING
+		model.placement_target = model.get_path_to(after)
 	model.show()
 	controls.show()
 	show_options(options_button.visible and options_button.button_pressed)

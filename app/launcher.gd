@@ -107,13 +107,15 @@ func open_zip(path: String) -> void:
 	var error := check.open(path)
 	var count := check.models.size()
 	check.close()
+	var previous: Window = null
 	for index in count:
 		var document := Document.instantiate()
 		add_child(document)
-		error = document.open(path, index, index == 0)
+		error = document.open(path, index, index == 0, previous)
 		if not error.is_empty():
 			document.queue_free()
 			break
+		previous = document.model
 	if not error.is_empty():
 		show_error("Can't open %s" % path.get_file().get_basename(), error)
 
