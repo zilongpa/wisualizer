@@ -69,11 +69,11 @@ A model's timeline is the solver times its files have: nothing lists frames.
 
 The desktop build makes ZIPs in a workspace: **New…** in the library starts an
 empty one, and the pencil beside a ZIP opens it there. The sidebar lists the
-models: **+** adds one, and its name and order are set there. The first four
-pages show the model picked there.
+models, with the one picked opened up to its pages, and **+ Add model**; below
+them are the notes and images every model shares. A model's own row shows its
+name, its order and what it holds, and every page of it is headed with its
+name.
 
-- **Timeline**: the model's frames, one for each solver time its GLBs and
-  bricks have, and which of them has a step at each. There is nothing to set.
 - **Parts**: **Import GLBs…** takes the GLBs EnSight exports. Pick all of a
   part's GLBs, one per time step, named alike but for the step's number, and
   they become a part that changes at their solver times; a GLB on its own
@@ -86,8 +86,11 @@ pages show the model picked there.
 - **Labels**: text at points in the volume. **Add label** puts one at the
   parts' center; type its text and its point, in the model's units, which the
   page shows the extent of. A radius and the frames it shows at are optional.
+- **Timeline**: the model's frames, one for each solver time its GLBs and
+  bricks have, and which of them has a step at each. There is nothing to set.
+- **Notes**: BBCode on the left, as it will look on the right, beside the
+  first model's volume.
 - **Images**: what the notes show. **Insert into notes** adds an `[img]` tag.
-- **Notes**: BBCode on the left, as it will look on the right.
 
 **Save** writes the ZIP into the library, **Save As…** somewhere else, and
 **Preview** saves and opens it.

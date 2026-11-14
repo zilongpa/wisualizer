@@ -28,6 +28,9 @@ var _preview_timer: SceneTreeTimer
 var _filling := false
 var _label_inputs := {}
 var _label_errors := {}
+## The page showing, and the sidebar's rows by the page they show.
+var _page := "Parts"
+var _nav_buttons := {}
 
 
 ## Starts on the ZIP at [param path], or empty for a new one saved there.
@@ -44,7 +47,6 @@ func start(path: String) -> String:
 		draft.add_model().name = draft.title
 	_show_target()
 	_show_draft()
-	show_page("Parts")
 	show()
 	return ""
 
@@ -61,14 +63,19 @@ func _show_draft() -> void:
 	refresh_preview()
 
 
-## Shows the page called [param page_name], one of the sidebar's sections.
+## Shows the page called [param page_name]: the model's own, one of its
+## pages, or one every model shares.
 func show_page(page_name: String) -> void:
+	_page = page_name
 	for page in %Pages.get_children():
 		page.visible = page.name == page_name
 	if page_name == "Labels":
 		_show_model_bounds()
-	# Through its group, so the other sections let go; only toggled fires.
-	(%Pages.get_node("../../Sidebar/Column/%sSection" % page_name) as Button).button_pressed = true
+	if page_name == "Model":
+		_show_summary()
+	_show_headers()
+	for key: String in _nav_buttons:
+		_nav_buttons[key].set_pressed_no_signal(key == page_name)
 
 
 func close() -> void:
@@ -152,24 +159,25 @@ func _show_status(message: String) -> void:
 
 # Models
 
+## A model's pages, by page node, with what the sidebar calls them.
+const MODEL_PAGES := {Parts = "Parts", Fields = "Fields", Labels = "Labels", Frames = "Timeline"}
+## The pages shared by every model.
+const ZIP_PAGES := ["Notes", "Images"]
+
+
 func add_model() -> void:
 	draft.add_model()
 	show_models(draft.models.size() - 1)
+	show_page("Model")
 	%ModelName.grab_focus()
 	%ModelName.select_all()
 
 
+## Shows model [param selected], or the one showing, on the pages.
 func show_models(selected := -1) -> void:
-	var list: ItemList = %ModelList
-	if selected < 0 and list.is_anything_selected():
-		selected = list.get_selected_items()[0]
-	list.clear()
-	for each in draft.models:
-		list.add_item(each.name)
-	selected = clampi(selected, -1, draft.models.size() - 1)
-	if selected >= 0:
-		list.select(selected)
-	show_model(selected)
+	if selected < 0:
+		selected = draft.models.find(model)
+	show_model(clampi(selected, 0, draft.models.size() - 1) if not draft.models.is_empty() else -1)
 
 
 ## Shows model [param index] on the pages, or none.
@@ -185,15 +193,105 @@ func show_model(index: int) -> void:
 	show_parts()
 	show_fields()
 	show_labels()
-	if %Pages.get_node("Labels").visible:
-		_show_model_bounds()
+	_show_summary()
+	_build_nav()
+	if model == null and not _page in ZIP_PAGES:
+		_page = "Model"
+	show_page(_page)
+
+
+## Lists the models in the sidebar, the one showing opened up to its pages,
+## then the pages every model shares.
+func _build_nav() -> void:
+	var nav: VBoxContainer = %Nav
+	for child in nav.get_children():
+		nav.remove_child(child)
+		child.queue_free()
+	_nav_buttons.clear()
+	nav.add_child(_nav_caption("Models", "Each model opens in a volume of its own, side by side, and they play together"))
+	for each in draft.models:
+		var row := _nav_row(each.name if not each.name.strip_edges().is_empty() else "(no name)", 0)
+		row.pressed.connect(_pick_model.bind(each))
+		nav.add_child(row)
+		if each != model:
+			continue
+		_nav_buttons["Model"] = row
+		for page: String in MODEL_PAGES:
+			var sub := _nav_row(MODEL_PAGES[page], 1)
+			sub.pressed.connect(show_page.bind(page))
+			nav.add_child(sub)
+			_nav_buttons[page] = sub
+	var add := _nav_row("+  Add model", 0)
+	add.toggle_mode = false
+	add.tooltip_text = "Add a model, in a volume of its own"
+	add.pressed.connect(add_model)
+	nav.add_child(add)
+	var gap := Control.new()
+	gap.custom_minimum_size.y = 16
+	nav.add_child(gap)
+	nav.add_child(_nav_caption("Shared by all models", "Shown beside the first model's volume"))
+	for page in ZIP_PAGES:
+		var row := _nav_row(page, 0)
+		row.pressed.connect(show_page.bind(page))
+		nav.add_child(row)
+		_nav_buttons[page] = row
+
+
+func _pick_model(picked: Draft.Model) -> void:
+	if picked != model:
+		show_model(draft.models.find(picked))
+	show_page("Model")
+
+
+static func _nav_caption(text: String, tooltip: String) -> Label:
+	var caption := Label.new()
+	caption.text = text
+	caption.tooltip_text = tooltip
+	caption.mouse_filter = Control.MOUSE_FILTER_PASS
+	caption.theme_type_variation = &"Caption"
+	return caption
+
+
+## A sidebar row, indented [param depth] steps.
+static func _nav_row(text: String, depth: int) -> Button:
+	var row := Button.new()
+	row.text = ("      " if depth > 0 else "") + text
+	row.toggle_mode = true
+	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	row.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	row.custom_minimum_size.y = 40
+	row.theme_type_variation = &"SidebarRow"
+	row.focus_mode = Control.FOCUS_NONE
+	return row
+
+
+func _show_summary() -> void:
+	if model == null:
+		%ModelSummary.text = "No models: add one in the sidebar."
+		return
+	var times := model.times()
+	var parts := "%d part%s" % [model.parts.size(), "" if model.parts.size() == 1 else "s"]
+	var fields := "%d field%s" % [model.fields.size(), "" if model.fields.size() == 1 else "s"]
+	var labels := "%d label%s" % [model.labels.size(), "" if model.labels.size() == 1 else "s"]
+	var frames := "1 frame" if times.size() == 1 else "%d frames, from %s to %s" % [times.size(), _number(times[0]), _number(times[-1])]
+	%ModelSummary.text = "%s, %s, %s; %s" % [parts, fields, labels, frames]
+
+
+## Puts the model's name over its pages, so it's clear whose they are.
+func _show_headers() -> void:
+	var name := model.name if model else ""
+	%Pages.get_node("Model/Header").text = name if not name.strip_edges().is_empty() else "Model"
+	for page: String in MODEL_PAGES:
+		%Pages.get_node("%s/Header" % page).text = "%s · %s" % [name, MODEL_PAGES[page]] if model else MODEL_PAGES[page]
 
 
 func rename_model(text: String) -> void:
 	if _filling or model == null:
 		return
 	model.name = text
-	%ModelList.set_item_text(draft.models.find(model), text)
+	if _nav_buttons.has("Model"):
+		_nav_buttons["Model"].text = text if not text.strip_edges().is_empty() else "(no name)"
+	_show_headers()
 
 
 func remove_model() -> void:

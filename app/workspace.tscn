@@ -3,8 +3,6 @@
 [ext_resource type="Script" path="res://app/workspace.gd" id="1"]
 [ext_resource type="Texture2D" path="res://app/icons/delete.svg" id="2"]
 
-[sub_resource type="ButtonGroup" id="Sections"]
-
 [node name="Workspace" type="Window"]
 title = "Workspace"
 size = Vector2i(2240, 1440)
@@ -32,7 +30,7 @@ theme_override_constants/separation = 4
 [node name="Title" type="LineEdit" parent="Root/Sidebar/Column"]
 unique_name_in_owner = true
 layout_mode = 2
-tooltip_text = "Shown over the volume"
+tooltip_text = "The ZIP's title, shown in each volume's title"
 theme_type_variation = &"TitleField"
 placeholder_text = "Title"
 
@@ -48,144 +46,19 @@ text = "file.zip"
 text_overrun_behavior = 3
 
 [node name="Gap" type="Control" parent="Root/Sidebar/Column"]
-custom_minimum_size = Vector2(0, 16)
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 
-[node name="ModelsHeader" type="HBoxContainer" parent="Root/Sidebar/Column"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="ModelsCaption" type="Label" parent="Root/Sidebar/Column/ModelsHeader"]
-layout_mode = 2
-size_flags_horizontal = 3
-tooltip_text = "Each model opens in a volume of its own, with its own parts, fields, labels and timeline"
-mouse_filter = 0
-theme_type_variation = &"Caption"
-text = "Models"
-
-[node name="AddModel" type="Button" parent="Root/Sidebar/Column/ModelsHeader"]
-custom_minimum_size = Vector2(32, 32)
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Add a model"
-theme_type_variation = &"IconButton"
-text = "+"
-
-[node name="ModelUp" type="Button" parent="Root/Sidebar/Column/ModelsHeader"]
-custom_minimum_size = Vector2(32, 32)
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Move up"
-theme_type_variation = &"IconButton"
-text = "↑"
-
-[node name="ModelDown" type="Button" parent="Root/Sidebar/Column/ModelsHeader"]
-custom_minimum_size = Vector2(32, 32)
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Move down"
-theme_type_variation = &"IconButton"
-text = "↓"
-
-[node name="RemoveModel" type="Button" parent="Root/Sidebar/Column/ModelsHeader"]
-custom_minimum_size = Vector2(32, 32)
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Remove the selected model, with its parts, fields and labels"
-theme_type_variation = &"IconButton"
-icon = ExtResource("2")
-icon_alignment = 1
-expand_icon = true
-
-[node name="ModelList" type="ItemList" parent="Root/Sidebar/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-auto_height = true
-
-[node name="NameRow" type="HBoxContainer" parent="Root/Sidebar/Column"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="NameCaption" type="Label" parent="Root/Sidebar/Column/NameRow"]
-layout_mode = 2
-theme_type_variation = &"Caption"
-text = "Name"
-
-[node name="ModelName" type="LineEdit" parent="Root/Sidebar/Column/NameRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-tooltip_text = "Shown in the model's volume title when there are several"
-placeholder_text = "Model name"
-
-[node name="ModelGap" type="Control" parent="Root/Sidebar/Column"]
-custom_minimum_size = Vector2(0, 8)
-layout_mode = 2
-
-[node name="FramesSection" type="Button" parent="Root/Sidebar/Column"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-tooltip_text = "The model's timeline: the solver times its parts and fields have"
-theme_type_variation = &"SidebarRow"
-toggle_mode = true
-button_pressed = true
-button_group = SubResource("Sections")
-text = "Timeline"
-alignment = 0
-
-[node name="PartsSection" type="Button" parent="Root/Sidebar/Column"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-tooltip_text = "The model's GLBs"
-theme_type_variation = &"SidebarRow"
-toggle_mode = true
-button_group = SubResource("Sections")
-text = "Parts"
-alignment = 0
-
-[node name="FieldsSection" type="Button" parent="Root/Sidebar/Column"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-tooltip_text = "The fields controllers feel and the debug view shows"
-theme_type_variation = &"SidebarRow"
-toggle_mode = true
-button_group = SubResource("Sections")
-text = "Fields"
-alignment = 0
-
-[node name="LabelsSection" type="Button" parent="Root/Sidebar/Column"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-tooltip_text = "Text shown at points in the volume"
-theme_type_variation = &"SidebarRow"
-toggle_mode = true
-button_group = SubResource("Sections")
-text = "Labels"
-alignment = 0
-
-[node name="ImagesSection" type="Button" parent="Root/Sidebar/Column"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-tooltip_text = "The images the notes show"
-theme_type_variation = &"SidebarRow"
-toggle_mode = true
-button_group = SubResource("Sections")
-text = "Images"
-alignment = 0
-
-[node name="NotesSection" type="Button" parent="Root/Sidebar/Column"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-tooltip_text = "The notes shown beside the volume"
-theme_type_variation = &"SidebarRow"
-toggle_mode = true
-button_group = SubResource("Sections")
-text = "Notes"
-alignment = 0
-
-[node name="Spacer" type="Control" parent="Root/Sidebar/Column"]
+[node name="NavScroll" type="ScrollContainer" parent="Root/Sidebar/Column"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Nav" type="VBoxContainer" parent="Root/Sidebar/Column/NavScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
 [node name="Status" type="Label" parent="Root/Sidebar/Column"]
 unique_name_in_owner = true
@@ -226,6 +99,85 @@ theme_override_constants/margin_bottom = 24
 [node name="Pages" type="MarginContainer" parent="Root/Content"]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="Model" type="VBoxContainer" parent="Root/Content/Pages"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="Root/Content/Pages/Model"]
+layout_mode = 2
+theme_type_variation = &"Header"
+text = "Model"
+
+[node name="Caption" type="Label" parent="Root/Content/Pages/Model"]
+layout_mode = 2
+theme_type_variation = &"Caption"
+text = "Each model opens in a volume of its own, side by side with the others, and they all play together. Its parts, fields and labels share its units; its timeline is the solver times they have."
+autowrap_mode = 3
+
+[node name="Gap" type="Control" parent="Root/Content/Pages/Model"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Card" type="PanelContainer" parent="Root/Content/Pages/Model"]
+layout_mode = 2
+theme_type_variation = &"Card"
+
+[node name="Column" type="VBoxContainer" parent="Root/Content/Pages/Model/Card"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Form" type="GridContainer" parent="Root/Content/Pages/Model/Card/Column"]
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 12
+columns = 2
+
+[node name="NameLabel" type="Label" parent="Root/Content/Pages/Model/Card/Column/Form"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_type_variation = &"FormLabel"
+text = "Name"
+
+[node name="ModelName" type="LineEdit" parent="Root/Content/Pages/Model/Card/Column/Form"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Shown in the model's volume title when there are several"
+
+[node name="ContentsLabel" type="Label" parent="Root/Content/Pages/Model/Card/Column/Form"]
+layout_mode = 2
+theme_type_variation = &"FormLabel"
+text = "Contents"
+
+[node name="ModelSummary" type="Label" parent="Root/Content/Pages/Model/Card/Column/Form"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"Caption"
+autowrap_mode = 3
+
+[node name="Toolbar" type="HBoxContainer" parent="Root/Content/Pages/Model/Card/Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ModelUp" type="Button" parent="Root/Content/Pages/Model/Card/Column/Toolbar"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+tooltip_text = "Open this model's volume before the one above it"
+text = "Move up"
+
+[node name="ModelDown" type="Button" parent="Root/Content/Pages/Model/Card/Column/Toolbar"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+tooltip_text = "Open this model's volume after the one below it"
+text = "Move down"
+
+[node name="RemoveModel" type="Button" parent="Root/Content/Pages/Model/Card/Column/Toolbar"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+tooltip_text = "Remove this model, with its parts, fields and labels"
+text = "Remove model"
 
 [node name="Frames" type="VBoxContainer" parent="Root/Content/Pages"]
 layout_mode = 2
@@ -841,12 +793,6 @@ use_native_dialog = true
 
 [connection signal="close_requested" from="." to="." method="close"]
 [connection signal="text_changed" from="Root/Sidebar/Column/Title" to="." method="edit_title"]
-[connection signal="pressed" from="Root/Sidebar/Column/FramesSection" to="." method="show_page" binds= ["Frames"]]
-[connection signal="pressed" from="Root/Sidebar/Column/PartsSection" to="." method="show_page" binds= ["Parts"]]
-[connection signal="pressed" from="Root/Sidebar/Column/FieldsSection" to="." method="show_page" binds= ["Fields"]]
-[connection signal="pressed" from="Root/Sidebar/Column/LabelsSection" to="." method="show_page" binds= ["Labels"]]
-[connection signal="pressed" from="Root/Sidebar/Column/ImagesSection" to="." method="show_page" binds= ["Images"]]
-[connection signal="pressed" from="Root/Sidebar/Column/NotesSection" to="." method="show_page" binds= ["Notes"]]
 [connection signal="pressed" from="Root/Sidebar/Column/Save" to="." method="save"]
 [connection signal="pressed" from="Root/Sidebar/Column/SaveAs" to="." method="ask_save_as"]
 [connection signal="pressed" from="Root/Sidebar/Column/Preview" to="." method="preview"]
@@ -883,9 +829,7 @@ use_native_dialog = true
 [connection signal="files_selected" from="BOVFiles" to="." method="import_bovs"]
 [connection signal="files_selected" from="ImageFiles" to="." method="import_images"]
 [connection signal="file_selected" from="SaveAsFile" to="." method="save_as"]
-[connection signal="pressed" from="Root/Sidebar/Column/ModelsHeader/AddModel" to="." method="add_model"]
-[connection signal="pressed" from="Root/Sidebar/Column/ModelsHeader/ModelUp" to="." method="move_model" binds= [-1]]
-[connection signal="pressed" from="Root/Sidebar/Column/ModelsHeader/ModelDown" to="." method="move_model" binds= [1]]
-[connection signal="pressed" from="Root/Sidebar/Column/ModelsHeader/RemoveModel" to="." method="remove_model"]
-[connection signal="item_selected" from="Root/Sidebar/Column/ModelList" to="." method="show_model"]
-[connection signal="text_changed" from="Root/Sidebar/Column/NameRow/ModelName" to="." method="rename_model"]
+[connection signal="text_changed" from="Root/Content/Pages/Model/Card/Column/Form/ModelName" to="." method="rename_model"]
+[connection signal="pressed" from="Root/Content/Pages/Model/Card/Column/Toolbar/ModelUp" to="." method="move_model" binds= [-1]]
+[connection signal="pressed" from="Root/Content/Pages/Model/Card/Column/Toolbar/ModelDown" to="." method="move_model" binds= [1]]
+[connection signal="pressed" from="Root/Content/Pages/Model/Card/Column/Toolbar/RemoveModel" to="." method="remove_model"]
