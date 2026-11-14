@@ -185,9 +185,10 @@ func add_glbs(paths: PackedStringArray) -> String:
 
 
 ## Adds the bricks whose headers are at [param paths] as fields, one per
-## variable. Without frames yet, the frames come from the bricks' solver
-## times; otherwise each brick goes to the frame nearest its time. Returns an
-## empty string, or what is wrong with the bricks.
+## variable. Each brick goes to the frame at its solver time; a time no
+## frame has yet becomes a frame of its own, in order, unless a model's GLBs
+## set the frames. Returns an empty string, or what is wrong with the
+## bricks.
 func add_bovs(paths: PackedStringArray) -> String:
 	var bovs := []
 	for file in paths:
@@ -195,12 +196,12 @@ func add_bovs(paths: PackedStringArray) -> String:
 		if bov == null:
 			return "%s isn't a brick header with its data beside it." % file.get_file()
 		bovs.append(bov)
-	if times.is_empty():
-		var steps := {}
+	for model in models:
+		if not model.changes():
+			continue
 		for bov in bovs:
-			steps[bov.time] = true
-		times = PackedFloat64Array(steps.keys())
-		times.sort()
+			if _frame_of(bov.time) < 0:
+				return "%s is at time %s, but %s's GLBs set the frames, and none is at that time." % [bov.data.get_file(), bov.time, model.name]
 	for bov in bovs:
 		var field: Field = null
 		for existing in fields:
@@ -218,7 +219,10 @@ func add_bovs(paths: PackedStringArray) -> String:
 			fit_field(field)
 		elif field.cells != bov.cells:
 			return "%s has %s cells, but %s has %s." % [bov.data.get_file(), bov.cells, field.name, field.cells]
-		field.bricks[_nearest(bov.time)] = bov.data
+		var frame := _frame_of(bov.time)
+		if frame < 0:
+			frame = _add_frame(bov.time)
+		field.bricks[frame] = bov.data
 	return ""
 
 
@@ -385,12 +389,46 @@ func save(target: String) -> String:
 	return open(target)
 
 
-func _nearest(time: float) -> int:
+## The frame at [param time], or -1. Times written by different exporters
+## differ a little, so a time counts as a frame's when it is much nearer to
+## it than to the frames beside it.
+func _frame_of(time: float) -> int:
+	if times.is_empty():
+		return -1
 	var best := 0
 	for index in times.size():
 		if absf(times[index] - time) < absf(times[best] - time):
 			best = index
-	return best
+	var gap := INF
+	if best > 0:
+		gap = times[best] - times[best - 1]
+	if best < times.size() - 1:
+		gap = minf(gap, times[best + 1] - times[best])
+	if is_inf(gap):
+		gap = maxf(absf(times[best]), absf(time))
+	return best if absf(times[best] - time) <= gap * 1e-3 else -1
+
+
+## Adds a frame at [param time], in order, and returns it. Whatever has a
+## file per frame shifts past it; a model's GLB from the frame before also
+## shows at it.
+func _add_frame(time: float) -> int:
+	var frame := times.bsearch(time)
+	times.insert(frame, time)
+	for model in models:
+		if model.changes():
+			model.files.insert(frame, model.files[maxi(frame - 1, 0)])
+	for field in fields:
+		var bricks := {}
+		for at: int in field.bricks:
+			bricks[at + 1 if at >= frame else at] = field.bricks[at]
+		field.bricks = bricks
+	for label in labels:
+		if frame <= label.frames.x and label.frames.x > 0:
+			label.frames.x += 1
+		if frame <= label.frames.y:
+			label.frames.y += 1
+	return frame
 
 
 static func _folder(name: String) -> String:
