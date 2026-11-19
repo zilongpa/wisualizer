@@ -120,3 +120,11 @@ static func _blep(phase: float, step: float) -> float:
 		var x := (phase - 1.0) / step
 		return x * x + x + x + 1.0
 	return 0.0
+
+
+## Stops every tone with the volume, so none plays on after it closes.
+func _exit_tree() -> void:
+	for player: Node in get_children():
+		if player is AudioStreamPlayer:
+			player.stop()
+	_voices.clear()
