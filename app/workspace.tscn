@@ -653,7 +653,7 @@ text = "Images"
 [node name="Caption" type="Label" parent="Root/Content/Pages/Images"]
 layout_mode = 2
 theme_type_variation = &"Caption"
-text = "What the notes can show: PNG, JPEG, WebP or SVG. Formulas are SVGs exported from LaTeX; they take the notes' text color. One image can be the ZIP's icon in the library; a square one fits best."
+text = "What the notes can show: PNG, JPEG, WebP or SVG. Formulas are SVGs exported from LaTeX; they take the notes' text color. One image can be the ZIP's preview in the library; a square one fits best."
 autowrap_mode = 3
 
 [node name="Gap" type="Control" parent="Root/Content/Pages/Images"]
@@ -709,8 +709,8 @@ text = "Insert into notes"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-tooltip_text = "Show this image for the ZIP in the library"
-text = "The ZIP's icon"
+tooltip_text = "Show this image on the ZIP's tile in the library"
+text = "Use as preview"
 
 [node name="PreviewCard" type="PanelContainer" parent="Root/Content/Pages/Images/Row"]
 layout_mode = 2

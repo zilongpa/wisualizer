@@ -99,7 +99,7 @@ name.
 - **Notes**: BBCode on the left, as it will look on the right, beside the
   first model's volume.
 - **Images**: what the notes show. **Insert into notes** adds an `[img]` tag;
-  **The ZIP's icon** shows the image for the ZIP in the library.
+  **Use as preview** shows the image on the ZIP's tile in the library.
 
 **Save** writes the ZIP into the library, **Save As…** somewhere else, and
 **Preview** saves and opens it.

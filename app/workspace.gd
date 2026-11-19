@@ -675,7 +675,7 @@ func show_images(selected := -1) -> void:
 		selected = list.get_selected_items()[0]
 	list.clear()
 	for name: String in draft.images:
-		list.add_item(name + ("  · icon" if name == draft.icon else ""))
+		list.add_item(name + ("  · preview" if name == draft.icon else ""))
 	selected = clampi(selected, -1, draft.images.size() - 1)
 	if selected >= 0:
 		list.select(selected)
