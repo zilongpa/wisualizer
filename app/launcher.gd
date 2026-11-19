@@ -87,7 +87,7 @@ func import_zip(path: String) -> void:
 	if _in_library(path):
 		open_zip(path)
 		return
-	var copy := LIBRARY.path_join(path.get_file())
+	var copy := _free_name(path.get_file())
 	var source := FileAccess.open(path, FileAccess.READ)
 	var target := FileAccess.open(copy, FileAccess.WRITE)
 	if source == null or target == null:
@@ -147,6 +147,17 @@ func _check(path: String) -> bool:
 	if not error.is_empty():
 		show_error("Can't open %s" % path.get_file(), error)
 	return error.is_empty()
+
+
+## Where a ZIP named [param file] goes in the library: under that name, or
+## numbered after the ZIPs already there with it, as "hall 2.zip".
+static func _free_name(file: String) -> String:
+	var copy := LIBRARY.path_join(file)
+	var number := 2
+	while FileAccess.file_exists(copy):
+		copy = LIBRARY.path_join("%s %d.%s" % [file.get_basename(), number, file.get_extension()])
+		number += 1
+	return copy
 
 
 func _in_library(path: String) -> bool:
@@ -244,7 +255,8 @@ func read_library() -> Array[String]:
 
 
 ## Shows a tile for each ZIP in the library: its icon, or its title's
-## first letter, and its title.
+## first letter, and its title. ZIPs with the same title go by their file
+## names instead, which the library keeps apart.
 func show_library() -> void:
 	for child in library_list.get_children():
 		if child != tile_template:
@@ -252,10 +264,18 @@ func show_library() -> void:
 	var paths := read_library()
 	%Caption.text = "Most recently opened first." if not paths.is_empty() \
 			else "Open a ZIP to start, and add it to the library to open it again later."
+	var summaries := {}
+	var counts := {}
+	for path in paths:
+		summaries[path] = Meta.summary(path)
+		var title: String = summaries[path].get("title", path.get_file().get_basename())
+		counts[title] = counts.get(title, 0) + 1
 	var titles := {}
 	for path in paths:
-		var summary := Meta.summary(path)
+		var summary: Dictionary = summaries[path]
 		var title: String = summary.get("title", path.get_file().get_basename())
+		if counts[title] > 1:
+			title = path.get_file().get_basename()
 		titles[path] = title
 		var tile := tile_template.duplicate() as VBoxContainer
 		tile.visible = true
