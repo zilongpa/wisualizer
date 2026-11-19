@@ -6,8 +6,8 @@
 [ext_resource type="Texture2D" path="res://app/icons/edit.svg" id="4"]
 [ext_resource type="Texture2D" path="res://app/icons/settings.svg" id="5"]
 [ext_resource type="PackedScene" path="res://app/settings_window.tscn" id="6"]
-[ext_resource type="Texture2D" path="res://app/icons/open.svg" id="open"]
-[ext_resource type="Texture2D" path="res://app/icons/new.svg" id="new"]
+[ext_resource type="Texture2D" path="res://app/icons/folder-open.svg" id="open"]
+[ext_resource type="Texture2D" path="res://app/icons/newlybuild.svg" id="new"]
 
 [sub_resource type="StyleBoxFlat" id="LogoShape"]
 corner_radius_top_left = 36
@@ -103,26 +103,89 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 tooltip_text = "Open a ZIP, and add it to the library if you like"
+
+[node name="Row" type="HBoxContainer" parent="Root/Sidebar/Inset/Column/Open"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Root/Sidebar/Inset/Column/Open/Row"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("open")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Root/Sidebar/Inset/Column/Open/Row"]
+layout_mode = 2
 text = "Open…"
-theme_override_constants/icon_max_width = 20
-icon = ExtResource("open")
 
 [node name="New" type="Button" parent="Root/Sidebar/Inset/Column"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 tooltip_text = "Make a ZIP: import GLBs, bricks and images, and write the notes"
+
+[node name="Row" type="HBoxContainer" parent="Root/Sidebar/Inset/Column/New"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Root/Sidebar/Inset/Column/New/Row"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("new")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Root/Sidebar/Inset/Column/New/Row"]
+layout_mode = 2
 text = "New…"
-theme_override_constants/icon_max_width = 20
-icon = ExtResource("new")
 
 [node name="Settings" type="Button" parent="Root/Sidebar/Inset/Column"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 tooltip_text = "The debug views, and how the field sounds"
+
+[node name="Row" type="HBoxContainer" parent="Root/Sidebar/Inset/Column/Settings"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Root/Sidebar/Inset/Column/Settings/Row"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("5")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Root/Sidebar/Inset/Column/Settings/Row"]
+layout_mode = 2
 text = "Settings"
-theme_override_constants/icon_max_width = 20
-icon = ExtResource("5")
 
 [node name="RecentGap" type="Control" parent="Root/Sidebar/Inset/Column"]
 custom_minimum_size = Vector2(0, 16)
