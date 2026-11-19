@@ -56,6 +56,14 @@ corner_detail = 8
 expand_margin_left = 12.0
 anti_aliasing_size = 0.5
 
+[sub_resource type="StyleBoxFlat" id="TileButton"]
+bg_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+corner_detail = 16
+
 [sub_resource type="StyleBoxFlat" id="TileBack"]
 bg_color = Color(1, 1, 1, 0.12)
 corner_radius_top_left = 28
@@ -253,7 +261,11 @@ theme_override_constants/separation = 8
 custom_minimum_size = Vector2(176, 176)
 layout_mode = 2
 mouse_filter = 1
-flat = true
+theme_override_styles/normal = SubResource("TileButton")
+theme_override_styles/hover = SubResource("TileButton")
+theme_override_styles/pressed = SubResource("TileButton")
+theme_override_styles/hover_pressed = SubResource("TileButton")
+theme_override_styles/focus = SubResource("TileButton")
 
 [node name="Back" type="Panel" parent="Root/Content/Column/Scroll/Library/Tile/Open"]
 layout_mode = 1

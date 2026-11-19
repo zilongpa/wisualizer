@@ -342,7 +342,7 @@ bbcode_enabled = true
 
 [node name="Probes" type="Window" parent="Model"]
 title = "Compare"
-size = Vector2i(1000, 760)
+size = Vector2i(1000, 1000)
 visible = false
 placement = 5
 script = ExtResource("probe_panel")
