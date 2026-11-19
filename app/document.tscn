@@ -13,6 +13,10 @@
 [ext_resource type="Texture2D" path="res://app/icons/notes.svg" id="7"]
 [ext_resource type="Texture2D" path="res://app/icons/settings.svg" id="8"]
 [ext_resource type="Texture2D" path="res://app/icons/immersive.svg" id="immersive"]
+[ext_resource type="Texture2D" path="res://app/icons/probe.svg" id="probe"]
+[ext_resource type="Script" path="res://app/probe_pins.gd" id="probe_pins"]
+[ext_resource type="Script" path="res://app/probe_panel.gd" id="probe_panel"]
+[ext_resource type="Script" path="res://ui/line_chart.gd" id="line_chart"]
 
 [sub_resource type="StandardMaterial3D" id="Edge"]
 shading_mode = 0
@@ -66,6 +70,10 @@ shape = SubResource("GrabShape")
 unique_name_in_owner = true
 visible = false
 script = ExtResource("field_probes")
+
+[node name="ProbePins" type="Node3D" parent="Model/Turntable"]
+unique_name_in_owner = true
+script = ExtResource("probe_pins")
 
 [node name="Labels" type="Node3D" parent="Model/Turntable"]
 unique_name_in_owner = true
@@ -191,6 +199,19 @@ tooltip_text = "Show or hide the notes"
 toggle_mode = true
 button_pressed = true
 icon = ExtResource("7")
+icon_alignment = 1
+expand_icon = true
+
+[node name="ProbesButton" type="Button" parent="Model/Controls/Bar"]
+theme_type_variation = &"IconButton"
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Compare the field at two points"
+toggle_mode = true
+icon = ExtResource("probe")
 icon_alignment = 1
 expand_icon = true
 
@@ -320,6 +341,105 @@ unique_name_in_owner = true
 layout_mode = 2
 bbcode_enabled = true
 
+[node name="Probes" type="Window" parent="Model"]
+title = "Compare"
+size = Vector2i(1000, 760)
+visible = false
+placement = 5
+script = ExtResource("probe_panel")
+
+[node name="Margin" type="MarginContainer" parent="Model/Probes"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Column" type="VBoxContainer" parent="Model/Probes/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Buttons" type="HBoxContainer" parent="Model/Probes/Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PinA" type="Button" parent="Model/Probes/Margin/Column/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Pin A where a fingertip is in the field"
+text = "Pin A"
+
+[node name="PinB" type="Button" parent="Model/Probes/Margin/Column/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Pin B where a fingertip is in the field"
+text = "Pin B"
+
+[node name="Clear" type="Button" parent="Model/Probes/Margin/Column/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+disabled = true
+text = "Clear"
+
+[node name="Status" type="Label" parent="Model/Probes/Margin/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Caption"
+text = "Put a fingertip in the field, then pin A or B."
+autowrap_mode = 3
+
+[node name="Readings" type="GridContainer" parent="Model/Probes/Margin/Column"]
+layout_mode = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="CellA" type="Label" parent="Model/Probes/Margin/Column/Readings"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ValueA" type="Label" parent="Model/Probes/Margin/Column/Readings"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 2
+
+[node name="CellB" type="Label" parent="Model/Probes/Margin/Column/Readings"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ValueB" type="Label" parent="Model/Probes/Margin/Column/Readings"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 2
+
+[node name="DifferenceLabel" type="Label" parent="Model/Probes/Margin/Column/Readings"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "B − A"
+
+[node name="Difference" type="Label" parent="Model/Probes/Margin/Column/Readings"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 2
+
+[node name="Chart" type="Control" parent="Model/Probes/Margin/Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 240)
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("line_chart")
+
 [connection signal="close_requested" from="Model" to="." method="close"]
 [connection signal="input_event" from="Model/Turntable/Grab" to="." method="turn_by_drag"]
 [connection signal="resized" from="Model/Volume" to="." method="fit" unbinds=1]
@@ -330,5 +450,7 @@ bbcode_enabled = true
 [connection signal="close_requested" from="Model/Notes" to="." method="close_notes"]
 [connection signal="meta_clicked" from="Model/Notes/Margin/Text" to="." method="open_link"]
 [connection signal="toggled" from="Model/Controls/Bar/OptionsButton" to="." method="show_options"]
+[connection signal="toggled" from="Model/Controls/Bar/ProbesButton" to="." method="show_probes"]
+[connection signal="close_requested" from="Model/Probes" to="." method="close_probes"]
 [connection signal="toggled" from="Model/Controls/Bar/ImmersiveButton" to="Model/Volume" method="set_immersive" flags=1]
 [connection signal="immersive_changed" from="Model/Volume" to="." method="_on_immersive_changed"]

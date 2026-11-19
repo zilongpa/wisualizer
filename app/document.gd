@@ -44,20 +44,25 @@ const KIND_TOUCH := 0
 @onready var controls: Window = $Model/Controls
 @onready var options: Window = $Model/Options
 @onready var notes: Window = $Model/Notes
+@onready var probe_panel: Window = $Model/Probes
 @onready var play_button: Button = %Play
 @onready var slider: HSlider = %Frame
 @onready var counter: Label = %Count
 @onready var probes: Node3D = %FieldProbes
+@onready var pins: Node3D = %ProbePins
 @onready var labels: Node3D = %Labels
 @onready var labels_button: CheckButton = %ShowLabels
 @onready var notes_button: Button = %NotesButton
 @onready var options_button: Button = %OptionsButton
+@onready var probes_button: Button = %ProbesButton
 @onready var immersive_button: Button = %ImmersiveButton
 @onready var touch: Node = $FieldTouch
 @onready var sound: Node = $FieldSound
 @onready var speed_group: ButtonGroup = $Model/Options/Bar/Speeds/Row/Speed0.button_group
 
 var meta := Meta.new()
+## Where the ZIP is, for reading it on worker threads.
+var zip_path := ""
 ## The model this volume shows.
 var entry: Meta.Model
 ## One per part, showing it at the current frame.
@@ -107,7 +112,7 @@ var _radius := 1.0
 
 
 func _ready() -> void:
-	for window: Window in [model, controls, options, notes]:
+	for window: Window in [model, controls, options, notes, probe_panel]:
 		window.window_input.connect(_on_window_input)
 	# The bars are pointed at, not tabbed through, so the keyboard stays with
 	# the shortcuts: a focused button would also take Space.
@@ -139,6 +144,7 @@ func open(path: String, model_index := 0, with_notes := true, after: Window = nu
 	var error := meta.open(path)
 	if not error.is_empty():
 		return error
+	zip_path = path
 	entry = meta.models[model_index]
 	frame_count = entry.times.size()
 	field_index = entry.first_field
@@ -159,6 +165,12 @@ func open(path: String, model_index := 0, with_notes := true, after: Window = nu
 	sound.volume = volume
 	probes.volume = volume
 	probes.field = field
+	pins.touch = touch
+	pins.volume = volume
+	pins.field = field
+	probe_panel.document = self
+	probe_panel.pins = pins
+	probes_button.visible = not entry.fields.is_empty()
 	labels.touch = touch
 	labels.volume = volume
 	labels.set_labels(entry.labels)
@@ -268,6 +280,17 @@ func _fit_width(window: Window, bar: Control) -> void:
 	window.size.x = ceili((bar.get_combined_minimum_size().x + margins) * window.content_scale_factor)
 
 
+func show_probes(shown: bool) -> void:
+	probe_panel.visible = shown
+
+
+## The person closed the comparison; its button opens it again. The pins
+## stay.
+func close_probes() -> void:
+	probe_panel.hide()
+	probes_button.set_pressed_no_signal(false)
+
+
 func show_options(shown: bool) -> void:
 	options.visible = shown
 
@@ -300,6 +323,12 @@ func _on_immersive_changed(immersive: bool) -> void:
 			window.size = _bar_sizes[window]
 		window.placement = placement
 		window.visible = shown
+	# The comparison hangs below the volume; the immersive space has nowhere
+	# below it.
+	var panel_shown := probe_panel.visible
+	probe_panel.hide()
+	probe_panel.placement = Window.PLACEMENT_AUTOMATIC if immersive else Window.PLACEMENT_BELOW
+	probe_panel.visible = panel_shown
 
 
 func toggle_play() -> void:
@@ -363,8 +392,10 @@ func update_field() -> void:
 	field.visible = Settings.debug
 	probes.visible = field.visible
 	probes.shown_field = current
+	pins.shown_field = current
 	field.transform = current.box
 	touch.set_brick(meta.read(current.files[frame]), current.cells, current.peak if current.peak > 0 else 255)
+	probe_panel.update()
 
 
 ## Finds the largest byte in a field's bricks, on a worker thread that opens

@@ -56,6 +56,12 @@ field); playback starts over after the last frame. **Settings** in the library
 turns on the debug view and sets how the field sounds under a fingertip. With a keyboard, Space plays
 or pauses and the arrow keys step a frame.
 
+A model with a field has a **compare** button on its bar. Hold a fingertip in
+the field, in the immersive space, or a controller's tip, and choose **Pin A**
+or **Pin B**: the pin keeps that cell as the model turns, moves and plays. The
+window shows both values at the frame showing, B − A, and both over the
+model's timeline; tap the chart to go to a frame.
+
 ## ZIPs
 
 A ZIP has a `meta.json` that says where its models, notes and images are;
