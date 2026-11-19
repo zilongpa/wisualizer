@@ -254,7 +254,7 @@ func read_library() -> Array[String]:
 	return paths
 
 
-## Shows a tile for each ZIP in the library: its icon, or its title's
+## Shows a tile for each ZIP in the library: its preview, or its title's
 ## first letter, and its title. ZIPs with the same title go by their file
 ## names instead, which the library keeps apart.
 func show_library() -> void:
@@ -282,13 +282,13 @@ func show_library() -> void:
 		var open_button := tile.get_node("Open") as Button
 		open_button.tooltip_text = "Open %s" % title
 		open_button.pressed.connect(open_zip.bind(path))
-		# An icon is clipped to the tile's shape; its letter needs no clipping,
+		# A preview is clipped to the tile's shape; its letter needs no clipping,
 		# which on visionOS leaves the clipped area opaque.
-		var icon: Image = summary.get("icon")
-		if icon:
-			(open_button.get_node("Mask/Icon") as TextureRect).texture = ImageTexture.create_from_image(icon)
-		open_button.get_node("Mask").visible = icon != null
-		open_button.get_node("Back").visible = icon == null
+		var preview: Image = summary.get("preview")
+		if preview:
+			(open_button.get_node("Mask/Preview") as TextureRect).texture = ImageTexture.create_from_image(preview)
+		open_button.get_node("Mask").visible = preview != null
+		open_button.get_node("Back").visible = preview == null
 		(open_button.get_node("Back/Initial") as Label).text = title.left(1).to_upper()
 		(tile.get_node("Footer/Name") as Label).text = title
 		var edit_button := tile.get_node("Footer/Edit") as Button

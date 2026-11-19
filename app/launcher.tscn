@@ -289,7 +289,7 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("TileShape")
 
-[node name="Icon" type="TextureRect" parent="Root/Content/Column/Scroll/Library/Tile/Open/Mask"]
+[node name="Preview" type="TextureRect" parent="Root/Content/Column/Scroll/Library/Tile/Open/Mask"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

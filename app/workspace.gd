@@ -675,7 +675,7 @@ func show_images(selected := -1) -> void:
 		selected = list.get_selected_items()[0]
 	list.clear()
 	for name: String in draft.images:
-		list.add_item(name + ("  · preview" if name == draft.icon else ""))
+		list.add_item(name + ("  · preview" if name == draft.preview else ""))
 	selected = clampi(selected, -1, draft.images.size() - 1)
 	if selected >= 0:
 		list.select(selected)
@@ -684,13 +684,13 @@ func show_images(selected := -1) -> void:
 
 func show_image(index: int) -> void:
 	var preview: TextureRect = %ImagePreview
-	%ImageIsIcon.disabled = index < 0
+	%ImageIsPreview.disabled = index < 0
 	if index < 0:
-		%ImageIsIcon.set_pressed_no_signal(false)
+		%ImageIsPreview.set_pressed_no_signal(false)
 		preview.texture = null
 		return
 	var name: String = draft.images.keys()[index]
-	%ImageIsIcon.set_pressed_no_signal(name == draft.icon)
+	%ImageIsPreview.set_pressed_no_signal(name == draft.preview)
 	var images := NotesImages.new()
 	images.embed("[img]%s[/img]" % Draft.IMAGES_FOLDER.path_join(name), draft.read_file, Draft.NOTES_FILE, "image", %NotesPreview.get_theme_color(&"default_color"), %NotesPreview.get_theme_font_size(&"normal_font_size"))
 	preview.texture = images.textures[0] if not images.textures.is_empty() else null
@@ -702,18 +702,18 @@ func remove_image() -> void:
 	if index >= 0:
 		var name: String = draft.images.keys()[index]
 		draft.images.erase(name)
-		if draft.icon == name:
-			draft.icon = ""
+		if draft.preview == name:
+			draft.preview = ""
 		show_images(index - 1)
 		refresh_preview()
 
 
-## Makes the picked image the ZIP's icon, or none.
-func set_icon(on: bool) -> void:
+## Makes the picked image the ZIP's preview, or none.
+func set_preview(on: bool) -> void:
 	var index := _selected(%ImageList)
 	if index < 0:
 		return
-	draft.icon = draft.images.keys()[index] if on else ""
+	draft.preview = draft.images.keys()[index] if on else ""
 	show_images(index)
 
 

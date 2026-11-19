@@ -72,7 +72,7 @@ It copies GLBs and bricks into the ZIP as they are.
 | `title` | Shown as each volume's title, with its model's name when there are several models. |
 | `models` | The models, each opening in its own volume, in this order. |
 | `notes` | Optional. The notes, in Godot BBCode; see the README. |
-| `icon` | Optional. A PNG, JPEG, WebP or SVG in the ZIP, shown for it in the library; a square one fits best. The workspace keeps it with the notes' images. |
+| `preview` | Optional. A PNG, JPEG, WebP or SVG in the ZIP, shown on its tile in the library; a square one fits best. The workspace keeps it with the notes' images. |
 
 Each model:
 

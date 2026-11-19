@@ -86,8 +86,8 @@ var title := ""
 var models: Array[Model] = []
 ## Where the notes are in the ZIP, or "" without notes.
 var notes := ""
-## Where the ZIP's icon is in it, or "" without one.
-var icon := ""
+## Where the ZIP's preview image is in it, or "" without one.
+var preview := ""
 
 var _zip := ZIPReader.new()
 
@@ -115,7 +115,7 @@ func open(path: String) -> String:
 	if models.is_empty():
 		return "The ZIP has no models."
 	notes = str(manifest.get("notes", ""))
-	icon = str(manifest.get("icon", ""))
+	preview = str(manifest.get("preview", ""))
 	return ""
 
 
@@ -206,7 +206,7 @@ func read(file: String) -> PackedByteArray:
 
 
 ## What the library shows of the ZIP at [param path], from its manifest
-## alone: {title, icon}, the icon as an image or null; empty if the ZIP
+## alone: {title, preview}, the preview as an image or null; empty if the ZIP
 ## can't be read.
 static func summary(path: String) -> Dictionary:
 	var zip := ZIPReader.new()
@@ -216,12 +216,12 @@ static func summary(path: String) -> Dictionary:
 	if not manifest is Dictionary:
 		zip.close()
 		return {}
-	var file := str(manifest.get("icon", ""))
+	var file := str(manifest.get("preview", ""))
 	var image: Image = null
 	if not file.is_empty() and zip.file_exists(file):
 		image = load_image(zip.read_file(file), file)
 	zip.close()
-	return {title = str(manifest.get("title", path.get_file().get_basename())), icon = image}
+	return {title = str(manifest.get("title", path.get_file().get_basename())), preview = image}
 
 
 ## The PNG, JPEG, WebP or SVG image [param bytes], by [param file]'s

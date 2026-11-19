@@ -38,7 +38,7 @@ editor's export templates as `4.7.dev/windows_release_x86_64.exe`.
 ## Use
 
 The first window is the library: its buttons on the left, and on the right
-a tile for each ZIP added, with the ZIP's icon or the first letter of its
+a tile for each ZIP added, with the ZIP's preview image or the first letter of its
 title. **Open…** opens a ZIP, after asking whether to add it to the library,
 which keeps a copy to open again later; tap a tile to open it again, or delete
 it from the library (the original file stays). Each model of a ZIP opens as
