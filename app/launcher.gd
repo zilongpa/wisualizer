@@ -282,6 +282,10 @@ func show_library() -> void:
 		var open_button := tile.get_node("Open") as Button
 		open_button.tooltip_text = "Open %s" % title
 		open_button.pressed.connect(open_zip.bind(path))
+		# A pointer over a tile lightens it; visionOS draws its own hover.
+		var hover := open_button.get_node("Hover") as Panel
+		open_button.mouse_entered.connect(hover.show)
+		open_button.mouse_exited.connect(hover.hide)
 		# A preview is clipped to the tile's shape; its letter needs no clipping,
 		# which on visionOS leaves the clipped area opaque.
 		var preview: Image = summary.get("preview")

@@ -18,6 +18,7 @@ corner_detail = 16
 anti_aliasing_size = 0.5
 
 [sub_resource type="StyleBoxFlat" id="RecentNormal"]
+content_margin_left = 12.0
 content_margin_top = 8.0
 content_margin_right = 12.0
 content_margin_bottom = 8.0
@@ -27,10 +28,10 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 corner_detail = 8
-expand_margin_left = 12.0
 anti_aliasing_size = 0.5
 
 [sub_resource type="StyleBoxFlat" id="RecentHover"]
+content_margin_left = 12.0
 content_margin_top = 8.0
 content_margin_right = 12.0
 content_margin_bottom = 8.0
@@ -40,10 +41,10 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 corner_detail = 8
-expand_margin_left = 12.0
 anti_aliasing_size = 0.5
 
 [sub_resource type="StyleBoxFlat" id="RecentPressed"]
+content_margin_left = 12.0
 content_margin_top = 8.0
 content_margin_right = 12.0
 content_margin_bottom = 8.0
@@ -53,7 +54,6 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 corner_detail = 8
-expand_margin_left = 12.0
 anti_aliasing_size = 0.5
 
 [sub_resource type="StyleBoxFlat" id="TileButton"]
@@ -63,6 +63,15 @@ corner_radius_top_right = 28
 corner_radius_bottom_right = 28
 corner_radius_bottom_left = 28
 corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="TileHover"]
+bg_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+corner_detail = 16
+anti_aliasing_size = 0.5
 
 [sub_resource type="StyleBoxFlat" id="TileBack"]
 bg_color = Color(1, 1, 1, 0.12)
@@ -98,27 +107,31 @@ custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 theme_type_variation = &"Sidebar"
 
-[node name="Inset" type="MarginContainer" parent="Root/Sidebar"]
+[node name="Sections" type="VBoxContainer" parent="Root/Sidebar"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Inset" type="MarginContainer" parent="Root/Sidebar/Sections"]
 layout_mode = 2
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_right = 18
 
-[node name="Column" type="VBoxContainer" parent="Root/Sidebar/Inset"]
+[node name="Column" type="VBoxContainer" parent="Root/Sidebar/Sections/Inset"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Top" type="Control" parent="Root/Sidebar/Inset/Column"]
+[node name="Top" type="Control" parent="Root/Sidebar/Sections/Inset/Column"]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 
-[node name="LogoMask" type="Panel" parent="Root/Sidebar/Inset/Column"]
+[node name="LogoMask" type="Panel" parent="Root/Sidebar/Sections/Inset/Column"]
 clip_children = 1
 custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_styles/panel = SubResource("LogoShape")
 
-[node name="Logo" type="TextureRect" parent="Root/Sidebar/Inset/Column/LogoMask"]
+[node name="Logo" type="TextureRect" parent="Root/Sidebar/Sections/Inset/Column/LogoMask"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -129,24 +142,24 @@ texture = ExtResource("2")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Name" type="Label" parent="Root/Sidebar/Inset/Column"]
+[node name="Name" type="Label" parent="Root/Sidebar/Sections/Inset/Column"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Wisualizer"
 horizontal_alignment = 1
 
-[node name="Version" type="Label" parent="Root/Sidebar/Inset/Column"]
+[node name="Version" type="Label" parent="Root/Sidebar/Sections/Inset/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Caption"
 text = "Version"
 horizontal_alignment = 1
 
-[node name="Gap" type="Control" parent="Root/Sidebar/Inset/Column"]
+[node name="Gap" type="Control" parent="Root/Sidebar/Sections/Inset/Column"]
 custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 
-[node name="Open" type="Button" parent="Root/Sidebar/Inset/Column"]
+[node name="Open" type="Button" parent="Root/Sidebar/Sections/Inset/Column"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 tooltip_text = "Open a ZIP, and add it to the library if you like"
@@ -154,7 +167,7 @@ text = "Open…"
 theme_override_constants/icon_max_width = 20
 icon = ExtResource("open")
 
-[node name="New" type="Button" parent="Root/Sidebar/Inset/Column"]
+[node name="New" type="Button" parent="Root/Sidebar/Sections/Inset/Column"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
@@ -163,7 +176,7 @@ text = "New…"
 theme_override_constants/icon_max_width = 20
 icon = ExtResource("new")
 
-[node name="Settings" type="Button" parent="Root/Sidebar/Inset/Column"]
+[node name="Settings" type="Button" parent="Root/Sidebar/Sections/Inset/Column"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 tooltip_text = "The debug views, and how the field sounds"
@@ -171,31 +184,42 @@ text = "Settings"
 theme_override_constants/icon_max_width = 20
 icon = ExtResource("5")
 
-[node name="RecentGap" type="Control" parent="Root/Sidebar/Inset/Column"]
+[node name="RecentInset" type="MarginContainer" parent="Root/Sidebar/Sections"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_right = 18
+
+[node name="Recents" type="VBoxContainer" parent="Root/Sidebar/Sections/RecentInset"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RecentGap" type="Control" parent="Root/Sidebar/Sections/RecentInset/Recents"]
 custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 
-[node name="RecentTitle" type="MarginContainer" parent="Root/Sidebar/Inset/Column"]
+[node name="RecentTitle" type="MarginContainer" parent="Root/Sidebar/Sections/RecentInset/Recents"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_constants/margin_left = 12
 
-[node name="Label" type="Label" parent="Root/Sidebar/Inset/Column/RecentTitle"]
+[node name="Label" type="Label" parent="Root/Sidebar/Sections/RecentInset/Recents/RecentTitle"]
 layout_mode = 2
 theme_type_variation = &"Caption"
 text = "Recent"
 
-[node name="RecentScroll" type="ScrollContainer" parent="Root/Sidebar/Inset/Column"]
+[node name="RecentScroll" type="ScrollContainer" parent="Root/Sidebar/Sections/RecentInset/Recents"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="Recent" type="VBoxContainer" parent="Root/Sidebar/Inset/Column/RecentScroll"]
+[node name="Recent" type="VBoxContainer" parent="Root/Sidebar/Sections/RecentInset/Recents/RecentScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 2
 
-[node name="RecentRow" type="Button" parent="Root/Sidebar/Inset/Column/RecentScroll/Recent"]
+[node name="RecentRow" type="Button" parent="Root/Sidebar/Sections/RecentInset/Recents/RecentScroll/Recent"]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 40)
@@ -312,6 +336,17 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 
+[node name="Hover" type="Panel" parent="Root/Content/Column/Scroll/Library/Tile/Open"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("TileHover")
+
 [node name="Footer" type="HBoxContainer" parent="Root/Content/Column/Scroll/Library/Tile"]
 layout_mode = 2
 theme_override_constants/separation = 4
@@ -383,12 +418,12 @@ dialog_autowrap = true
 title = "Delete from the library?"
 ok_button_text = "Delete"
 
-[connection signal="pressed" from="Root/Sidebar/Inset/Column/Open" to="Files" method="popup_centered"]
+[connection signal="pressed" from="Root/Sidebar/Sections/Inset/Column/Open" to="Files" method="popup_centered"]
 [connection signal="file_selected" from="Files" to="." method="pick_zip"]
 [connection signal="confirmed" from="ConfirmAdd" to="." method="_on_add_answered" binds= [0]]
 [connection signal="custom_action" from="ConfirmAdd" to="." method="_on_add_custom"]
-[connection signal="pressed" from="Root/Sidebar/Inset/Column/New" to="." method="ask_new"]
+[connection signal="pressed" from="Root/Sidebar/Sections/Inset/Column/New" to="." method="ask_new"]
 [connection signal="confirmed" from="ConfirmNew" to="." method="create_new"]
 [connection signal="text_submitted" from="ConfirmNew/NewName" to="." method="create_new" unbinds=1]
 [connection signal="confirmed" from="ConfirmDelete" to="." method="delete_pending"]
-[connection signal="pressed" from="Root/Sidebar/Inset/Column/Settings" to="SettingsWindow" method="show"]
+[connection signal="pressed" from="Root/Sidebar/Sections/Inset/Column/Settings" to="SettingsWindow" method="show"]
