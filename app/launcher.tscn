@@ -17,6 +17,45 @@ corner_radius_bottom_left = 36
 corner_detail = 16
 anti_aliasing_size = 0.5
 
+[sub_resource type="StyleBoxFlat" id="RecentNormal"]
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+corner_detail = 8
+expand_margin_left = 12.0
+anti_aliasing_size = 0.5
+
+[sub_resource type="StyleBoxFlat" id="RecentHover"]
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+corner_detail = 8
+expand_margin_left = 12.0
+anti_aliasing_size = 0.5
+
+[sub_resource type="StyleBoxFlat" id="RecentPressed"]
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 1, 1, 0.16)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+corner_detail = 8
+expand_margin_left = 12.0
+anti_aliasing_size = 0.5
+
 [sub_resource type="StyleBoxFlat" id="TileBack"]
 bg_color = Color(1, 1, 1, 0.12)
 corner_radius_top_left = 28
@@ -103,89 +142,26 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 tooltip_text = "Open a ZIP, and add it to the library if you like"
-
-[node name="Row" type="HBoxContainer" parent="Root/Sidebar/Inset/Column/Open"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-alignment = 1
-
-[node name="Icon" type="TextureRect" parent="Root/Sidebar/Inset/Column/Open/Row"]
-custom_minimum_size = Vector2(20, 20)
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("open")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Label" type="Label" parent="Root/Sidebar/Inset/Column/Open/Row"]
-layout_mode = 2
 text = "Open…"
+theme_override_constants/icon_max_width = 20
+icon = ExtResource("open")
 
 [node name="New" type="Button" parent="Root/Sidebar/Inset/Column"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 tooltip_text = "Make a ZIP: import GLBs, bricks and images, and write the notes"
-
-[node name="Row" type="HBoxContainer" parent="Root/Sidebar/Inset/Column/New"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-alignment = 1
-
-[node name="Icon" type="TextureRect" parent="Root/Sidebar/Inset/Column/New/Row"]
-custom_minimum_size = Vector2(20, 20)
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("new")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Label" type="Label" parent="Root/Sidebar/Inset/Column/New/Row"]
-layout_mode = 2
 text = "New…"
+theme_override_constants/icon_max_width = 20
+icon = ExtResource("new")
 
 [node name="Settings" type="Button" parent="Root/Sidebar/Inset/Column"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 tooltip_text = "The debug views, and how the field sounds"
-
-[node name="Row" type="HBoxContainer" parent="Root/Sidebar/Inset/Column/Settings"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-alignment = 1
-
-[node name="Icon" type="TextureRect" parent="Root/Sidebar/Inset/Column/Settings/Row"]
-custom_minimum_size = Vector2(20, 20)
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("5")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Label" type="Label" parent="Root/Sidebar/Inset/Column/Settings/Row"]
-layout_mode = 2
 text = "Settings"
+theme_override_constants/icon_max_width = 20
+icon = ExtResource("5")
 
 [node name="RecentGap" type="Control" parent="Root/Sidebar/Inset/Column"]
 custom_minimum_size = Vector2(0, 16)
@@ -194,7 +170,6 @@ layout_mode = 2
 [node name="RecentTitle" type="MarginContainer" parent="Root/Sidebar/Inset/Column"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/margin_left = 16
 
 [node name="Label" type="Label" parent="Root/Sidebar/Inset/Column/RecentTitle"]
 layout_mode = 2
@@ -219,6 +194,10 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 mouse_filter = 1
 theme_type_variation = &"ListRow"
+theme_override_styles/normal = SubResource("RecentNormal")
+theme_override_styles/hover = SubResource("RecentHover")
+theme_override_styles/pressed = SubResource("RecentPressed")
+theme_override_styles/hover_pressed = SubResource("RecentPressed")
 text = "ZIP"
 alignment = 0
 text_overrun_behavior = 3
