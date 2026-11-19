@@ -44,6 +44,8 @@ var _immersive := false
 var _immersive_size := Vector3.ZERO
 ## True while this backend reopens the Window itself.
 var _switching := false
+## The volume showing as the immersive space, of which the app has one.
+static var _in_space: WeakRef
 ## Where the box's center is in the immersive space, in meters from where
 ## the person's space starts.
 var _space_center := Vector3.ZERO
@@ -132,6 +134,12 @@ func get_hand_joint(hand: XRHandTracker, joint: XRHandTracker.HandJoint) -> Tran
 func set_immersive(immersive: bool, show := false) -> void:
 	if immersive == _immersive:
 		return
+	# visionOS shows one immersive space at a time: the volume there now
+	# goes back to being a volume first.
+	var other: Object = _in_space.get_ref() if _in_space != null else null
+	if immersive and other != null and other != self:
+		other.set_immersive(false, true)
+	_in_space = weakref(self) if immersive else null
 	var window := _volume.get_window()
 	var shown := window.visible or show
 	_switching = true
