@@ -107,6 +107,10 @@ func open_zip(path: String) -> void:
 	# the first has the notes.
 	var check := Meta.new()
 	var error := check.open(path)
+	if not error.is_empty():
+		check.close()
+		show_error("Can't open %s" % path.get_file().get_basename(), error)
+		return
 	var count := check.models.size()
 	var clock := Playback.new()
 	var times := PackedFloat64Array()
