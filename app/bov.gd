@@ -17,7 +17,7 @@ var data := ""
 
 
 ## Reads the header at [param path]. Returns null if it isn't one, or if
-## its data file isn't beside it.
+## its data file isn't beside it with a byte for every cell.
 static func read(path: String):
 	var lines := {}
 	for line in FileAccess.get_file_as_string(path).split("\n"):
@@ -36,7 +36,8 @@ static func read(path: String):
 	bov.axes = Basis(_vector(lines.get("BRICK X_AXIS", "1 0 0")), _vector(lines.get("BRICK Y_AXIS", "0 1 0")), _vector(lines.get("BRICK Z_AXIS", "0 0 1")))
 	# The data file is named by the exporting machine's path; it's beside the header.
 	bov.data = path.get_base_dir().path_join(str(lines.get("DATA FILE", "")).replace("\\", "/").get_file())
-	if not FileAccess.file_exists(bov.data):
+	var file := FileAccess.open(bov.data, FileAccess.READ)
+	if file == null or file.get_length() != bov.cells.x * bov.cells.y * bov.cells.z:
 		return null
 	return bov
 

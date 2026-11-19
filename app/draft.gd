@@ -267,7 +267,7 @@ func add_bovs(model: Model, paths: PackedStringArray) -> String:
 	for file in paths:
 		var bov = BOV.read(file)
 		if bov == null:
-			return "%s isn't a brick header with its data beside it." % file.get_file()
+			return "%s isn't a brick header with all its data beside it." % file.get_file()
 		bovs.append(bov)
 	for bov in bovs:
 		var field: Field = null
