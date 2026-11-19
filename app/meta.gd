@@ -86,6 +86,8 @@ var title := ""
 var models: Array[Model] = []
 ## Where the notes are in the ZIP, or "" without notes.
 var notes := ""
+## Where the ZIP's icon is in it, or "" without one.
+var icon := ""
 
 var _zip := ZIPReader.new()
 
@@ -113,6 +115,7 @@ func open(path: String) -> String:
 	if models.is_empty():
 		return "The ZIP has no models."
 	notes = str(manifest.get("notes", ""))
+	icon = str(manifest.get("icon", ""))
 	return ""
 
 
@@ -200,6 +203,44 @@ func close() -> void:
 ## The bytes of [param file] in the ZIP, or none if it isn't there.
 func read(file: String) -> PackedByteArray:
 	return _zip.read_file(file) if not file.is_empty() and _zip.file_exists(file) else PackedByteArray()
+
+
+## What the library shows of the ZIP at [param path], from its manifest
+## alone: {title, icon}, the icon as an image or null; empty if the ZIP
+## can't be read.
+static func summary(path: String) -> Dictionary:
+	var zip := ZIPReader.new()
+	if zip.open(path) != OK:
+		return {}
+	var manifest = JSON.parse_string(zip.read_file(MANIFEST).get_string_from_utf8()) if zip.file_exists(MANIFEST) else null
+	if not manifest is Dictionary:
+		zip.close()
+		return {}
+	var file := str(manifest.get("icon", ""))
+	var image: Image = null
+	if not file.is_empty() and zip.file_exists(file):
+		image = load_image(zip.read_file(file), file)
+	zip.close()
+	return {title = str(manifest.get("title", path.get_file().get_basename())), icon = image}
+
+
+## The PNG, JPEG, WebP or SVG image [param bytes], by [param file]'s
+## extension, or null if they aren't one.
+static func load_image(bytes: PackedByteArray, file: String) -> Image:
+	var image := Image.new()
+	var error: Error
+	match file.get_extension().to_lower():
+		"png":
+			error = image.load_png_from_buffer(bytes)
+		"webp":
+			error = image.load_webp_from_buffer(bytes)
+		"jpg", "jpeg":
+			error = image.load_jpg_from_buffer(bytes)
+		"svg":
+			error = image.load_svg_from_buffer(bytes, 4.0)
+		_:
+			error = ERR_FILE_UNRECOGNIZED
+	return image if error == OK else null
 
 
 ## The solver times in [param times], in order, each once: times that differ

@@ -112,6 +112,8 @@ var models: Array[Model] = []
 var notes := ""
 ## The images the notes can show, by file name, as sources.
 var images := {}
+## The image that is the ZIP's icon in the library, by file name, or "".
+var icon := ""
 
 var _zip: ZIPReader
 ## A ZIPReader reads one file at a time: the notes preview may read while a
@@ -138,6 +140,7 @@ func open(zip_path: String) -> String:
 	title = meta.title
 	models = []
 	images = {}
+	icon = ""
 	_bounds.clear()
 	for entry in meta.models:
 		var model := Model.new()
@@ -176,6 +179,8 @@ func open(zip_path: String) -> String:
 	for file in _zip.get_files():
 		if file.get_base_dir() == images_folder and NotesImages.is_image(file):
 			images[file.get_file()] = IN_ZIP + file
+	if meta.icon.get_base_dir() == images_folder and images.has(meta.icon.get_file()):
+		icon = meta.icon.get_file()
 	meta.close()
 	return ""
 
@@ -450,6 +455,8 @@ func save(target: String) -> String:
 		manifest.notes = NOTES_FILE
 	for name: String in images:
 		_store(packer, IMAGES_FOLDER.path_join(name), read_source(images[name]))
+	if images.has(icon):
+		manifest.icon = IMAGES_FOLDER.path_join(icon)
 	_store(packer, Meta.MANIFEST, JSON.stringify(manifest, "\t").to_utf8_buffer())
 	packer.close()
 

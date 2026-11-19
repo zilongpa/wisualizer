@@ -653,7 +653,7 @@ text = "Images"
 [node name="Caption" type="Label" parent="Root/Content/Pages/Images"]
 layout_mode = 2
 theme_type_variation = &"Caption"
-text = "What the notes can show: PNG, JPEG, WebP or SVG. Formulas are SVGs exported from LaTeX; they take the notes' text color."
+text = "What the notes can show: PNG, JPEG, WebP or SVG. Formulas are SVGs exported from LaTeX; they take the notes' text color. One image can be the ZIP's icon in the library; a square one fits best."
 autowrap_mode = 3
 
 [node name="Gap" type="Control" parent="Root/Content/Pages/Images"]
@@ -704,6 +704,13 @@ custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 tooltip_text = "Add an [img] tag for it at the notes' cursor"
 text = "Insert into notes"
+
+[node name="ImageIsIcon" type="CheckButton" parent="Root/Content/Pages/Images/Row/ListCard/Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+tooltip_text = "Show this image for the ZIP in the library"
+text = "The ZIP's icon"
 
 [node name="PreviewCard" type="PanelContainer" parent="Root/Content/Pages/Images/Row"]
 layout_mode = 2
@@ -824,6 +831,7 @@ use_native_dialog = true
 [connection signal="pressed" from="Root/Content/Pages/Images/Row/ListCard/Column/Toolbar/RemoveImage" to="." method="remove_image"]
 [connection signal="item_selected" from="Root/Content/Pages/Images/Row/ListCard/Column/ImageList" to="." method="show_image"]
 [connection signal="pressed" from="Root/Content/Pages/Images/Row/ListCard/Column/InsertImage" to="." method="insert_image"]
+[connection signal="toggled" from="Root/Content/Pages/Images/Row/ListCard/Column/ImageIsIcon" to="." method="set_icon"]
 [connection signal="text_changed" from="Root/Content/Pages/Notes/Split/Editor" to="." method="edit_notes"]
 [connection signal="files_selected" from="GLBFiles" to="." method="import_glbs"]
 [connection signal="files_selected" from="BOVFiles" to="." method="import_bovs"]
