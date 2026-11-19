@@ -6,6 +6,8 @@
 [ext_resource type="Texture2D" path="res://app/icons/edit.svg" id="4"]
 [ext_resource type="Texture2D" path="res://app/icons/settings.svg" id="5"]
 [ext_resource type="PackedScene" path="res://app/settings_window.tscn" id="6"]
+[ext_resource type="Texture2D" path="res://app/icons/open.svg" id="open"]
+[ext_resource type="Texture2D" path="res://app/icons/new.svg" id="new"]
 
 [sub_resource type="StyleBoxFlat" id="LogoShape"]
 corner_radius_top_left = 36
@@ -98,19 +100,29 @@ custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 
 [node name="Open" type="Button" parent="Root/Sidebar/Inset/Column"]
-alignment = 0
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 tooltip_text = "Open a ZIP, and add it to the library if you like"
 text = "Open…"
+theme_override_constants/icon_max_width = 20
+icon = ExtResource("open")
 
 [node name="New" type="Button" parent="Root/Sidebar/Inset/Column"]
-alignment = 0
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 tooltip_text = "Make a ZIP: import GLBs, bricks and images, and write the notes"
 text = "New…"
+theme_override_constants/icon_max_width = 20
+icon = ExtResource("new")
+
+[node name="Settings" type="Button" parent="Root/Sidebar/Inset/Column"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+tooltip_text = "The debug views, and how the field sounds"
+text = "Settings"
+theme_override_constants/icon_max_width = 20
+icon = ExtResource("5")
 
 [node name="RecentGap" type="Control" parent="Root/Sidebar/Inset/Column"]
 custom_minimum_size = Vector2(0, 16)
@@ -147,15 +159,6 @@ theme_type_variation = &"ListRow"
 text = "ZIP"
 alignment = 0
 text_overrun_behavior = 3
-
-[node name="Settings" type="Button" parent="Root/Sidebar/Inset/Column"]
-alignment = 0
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-tooltip_text = "The debug views, and how the field sounds"
-theme_override_constants/icon_max_width = 20
-text = "Settings"
-icon = ExtResource("5")
 
 [node name="Content" type="MarginContainer" parent="Root"]
 layout_mode = 2
