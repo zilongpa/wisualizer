@@ -7,7 +7,7 @@
 
 [node name="Settings" type="Window"]
 title = "Settings"
-size = Vector2i(880, 1040)
+size = Vector2i(880, 1280)
 visible = false
 placement = 3
 script = ExtResource("1")
@@ -27,12 +27,31 @@ theme_override_constants/margin_bottom = 24
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Debug" type="CheckButton" parent="Margin/Column"]
+[node name="DebugTitle" type="Label" parent="Margin/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Debug"
+
+[node name="FieldBox" type="CheckButton" parent="Margin/Column"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-tooltip_text = "Show the field box, and the field around each controller and hand"
-text = "Debug"
+tooltip_text = "Outline the box the field fills"
+text = "Field box"
+
+[node name="FieldReadouts" type="CheckButton" parent="Margin/Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+tooltip_text = "Show the field's cell and value at each controller tip and index fingertip"
+text = "Field at fingertips"
+
+[node name="HandJoints" type="CheckButton" parent="Margin/Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+tooltip_text = "Mark each joint of the tracked hands, in the immersive space"
+text = "Hand joints"
 
 [node name="Separator" type="HSeparator" parent="Margin/Column"]
 layout_mode = 2

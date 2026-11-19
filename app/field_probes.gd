@@ -3,7 +3,8 @@ extends Node3D
 ## engine's light probe debug view: the brick cell at the controller's tip,
 ## or the index fingertip, as a translucent cube colored by its value, and a
 ## white label over it with the cell's position and value, in the field's
-## unit. Also marks the tracked hands' joints. Only shows while visible.
+## unit; and a dot on each joint of the tracked hands. Each shows only
+## while asked for.
 ##
 ## Lives beside the Window's content, with no transform of its own, so its
 ## local coordinates are the model's.
@@ -24,6 +25,8 @@ var volume: SpatialVolume3D
 var field: Node3D
 ## The field shown, for its values' units.
 var shown_field: Meta.Field
+var show_readouts := false
+var show_joints := false
 
 var _colors := Gradient.new()
 ## Per controller or hand: its cube, its label, and the cell and brick
@@ -53,17 +56,17 @@ func _init() -> void:
 
 
 func _process(_delta: float) -> void:
-	if not visible or volume == null:
+	if volume == null:
 		return
 	# Where each controller or hand feels the field, if it is tracked.
 	var tips := {}
 	for controller in volume.get_controllers():
 		tips[controller] = touch.tip_of(controller) if controller.get_has_tracking_data() else null
 	var hands := volume.get_hands()
+	_show_joints(hands if show_joints else ([] as Array[XRHandTracker]))
 	for hand in [XRServer.get_tracker(&"/user/hand_tracker/left"), XRServer.get_tracker(&"/user/hand_tracker/right")]:
 		if hand != null:
 			tips[hand] = volume.get_hand_joint(hand, XRHandTracker.HAND_JOINT_INDEX_FINGER_TIP).origin if hand in hands else null
-	_show_joints(hands)
 	for source in tips:
 		var probe: Dictionary = _probes.get(source, {})
 		if probe.is_empty():
@@ -71,7 +74,7 @@ func _process(_delta: float) -> void:
 			_probes[source] = probe
 		var cell: Vector3i = touch.cell_at(tips[source]) if tips[source] != null else touch.NO_CELL
 		# Like the haptics, only a cell with a value counts.
-		var shown: bool = touch.value_of(cell) > 0.0
+		var shown: bool = show_readouts and touch.value_of(cell) > 0.0
 		probe.cube.visible = shown
 		probe.label.visible = shown
 		if shown and (cell != probe.cell or touch.revision != probe.revision):

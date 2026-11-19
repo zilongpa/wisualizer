@@ -381,16 +381,18 @@ func _show_frame(value: int) -> void:
 	update_field()
 
 
-## Shows the field box, and the field around each controller and hand, if
-## the debug view is on in the settings. The field can be felt either way.
+## Shows the current frame's field, with the debug views the settings ask
+## for: its box, its value at each controller and fingertip, and the hands'
+## joints. The field can be felt either way.
 func update_field() -> void:
+	probes.show_joints = Settings.hand_joints
 	if entry.fields.is_empty():
 		field.visible = false
-		probes.visible = false
+		probes.show_readouts = false
 		return
 	var current: Meta.Field = entry.fields[field_index]
-	field.visible = Settings.debug
-	probes.visible = field.visible
+	field.visible = Settings.field_box
+	probes.show_readouts = Settings.field_readouts
 	probes.shown_field = current
 	pins.shown_field = current
 	field.transform = current.box

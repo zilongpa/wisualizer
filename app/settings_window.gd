@@ -1,9 +1,10 @@
 extends Window
-## Edits the app's settings: the debug view, and how the field sounds. Its
+## Edits the app's settings: the debug views, and how the field sounds. Its
 ## pitch sliders move in semitones, on a scale of octaves, as the ear hears
 ## pitch.
 
-@onready var _debug: CheckButton = %Debug
+## Each debug view's switch, by its setting.
+@onready var _debug := {field_box = %FieldBox, field_readouts = %FieldReadouts, hand_joints = %HandJoints}
 @onready var _sound: CheckButton = %Sound
 @onready var _waveforms: Array[Node] = %Waveforms.get_children()
 @onready var _loudness: HSlider = %Loudness
@@ -13,7 +14,8 @@ extends Window
 
 func _ready() -> void:
 	close_requested.connect(hide)
-	_debug.toggled.connect(func(on: bool) -> void: Settings.change(&"debug", on))
+	for key: String in _debug:
+		(_debug[key] as CheckButton).toggled.connect(func(on: bool) -> void: Settings.change(key, on))
 	_sound.toggled.connect(func(on: bool) -> void: Settings.change(&"sound", on))
 	for button: Button in _waveforms:
 		button.pressed.connect(func() -> void: Settings.change(&"waveform", button.get_index()))
@@ -29,7 +31,8 @@ func _ready() -> void:
 
 
 func _show() -> void:
-	_debug.set_pressed_no_signal(Settings.debug)
+	for key: String in _debug:
+		(_debug[key] as CheckButton).set_pressed_no_signal(Settings.get(key))
 	_sound.set_pressed_no_signal(Settings.sound)
 	for button: Button in _waveforms:
 		button.set_pressed_no_signal(button.get_index() == Settings.waveform)

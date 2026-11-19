@@ -53,7 +53,7 @@ springs back when you let go. The volume makes room for it to turn any way. On
 desktop, drag to orbit the view. The bar below it plays, pauses and scrubs the
 frames, and shows or hides the notes and the options (speed, parts, labels,
 field); playback starts over after the last frame. **Settings** in the library
-turns on the debug view and sets how the field sounds under a fingertip. With a keyboard, Space plays
+turns on the debug views (the field's box, its value at each fingertip, the hands' joints) and sets how the field sounds under a fingertip. With a keyboard, Space plays
 or pauses and the arrow keys step a frame.
 
 A model with a field has a **compare** button on its bar. Hold a fingertip in

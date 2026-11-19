@@ -68,7 +68,6 @@ shape = SubResource("GrabShape")
 
 [node name="FieldProbes" type="Node3D" parent="Model/Turntable"]
 unique_name_in_owner = true
-visible = false
 script = ExtResource("field_probes")
 
 [node name="ProbePins" type="Node3D" parent="Model/Turntable"]

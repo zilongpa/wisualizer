@@ -11,8 +11,11 @@ enum Waveform { SINE, SAWTOOTH, SQUARE, TRIANGLE, NOISE }
 const FILE := "user://settings.cfg"
 const SECTION := "settings"
 
-## Shows the field box, and the field around each controller and hand.
-var debug := false
+## Debug views: the field's box, the field's value at each controller tip
+## and index fingertip, and the tracked hands' joints.
+var field_box := false
+var field_readouts := false
+var hand_joints := false
 ## Plays the field under each index fingertip, in the immersive space.
 var sound := true
 var waveform := Waveform.SINE
