@@ -37,9 +37,14 @@ func add_window(window: Window) -> void:
 	# Only ornaments go inside the window they belong to; a window that hosts
 	# them still opens the others as windows of their own.
 	window.force_native = true
+	# A window's position is its content's, so one left at the corner would
+	# hide its title bar above the screen: it opens centered, or beside the
+	# window it is placed by.
+	window.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN
 	if not is_equal_approx(_scale, 1.0):
 		window.size = Vector2i(Vector2(window.size) * _scale)
 		window.content_scale_factor *= _scale
+	window.visibility_changed.connect(_fit_on_screen.bind(window), CONNECT_ONE_SHOT)
 	if Placement.side(window.placement) != Vector2.ZERO:
 		window.visibility_changed.connect(_place_beside.bind(window), CONNECT_ONE_SHOT)
 
@@ -77,6 +82,23 @@ func _process(_delta: float) -> void:
 	for ornament in _ornaments:
 		if ornament.visible:
 			_place_ornament(ornament)
+
+
+## Shrinks [param window], title bar and all, to its screen if it is
+## larger, as a window sized for visionOS can be, and centers it there.
+func _fit_on_screen(window: Window) -> void:
+	var id := window.get_window_id()
+	if id == DisplayServer.INVALID_WINDOW_ID:
+		return
+	var screen := DisplayServer.screen_get_usable_rect(window.current_screen)
+	var frame := DisplayServer.window_get_size_with_decorations(id) - window.size
+	var room := screen.size - frame
+	if window.size.x <= room.x and window.size.y <= room.y:
+		return
+	window.min_size = window.min_size.min(room)
+	window.size = window.size.min(room)
+	var title := window.position - DisplayServer.window_get_position_with_decorations(id)
+	window.position = screen.position + title + (room - window.size) / 2
 
 
 func _place_beside(window: Window) -> void:
