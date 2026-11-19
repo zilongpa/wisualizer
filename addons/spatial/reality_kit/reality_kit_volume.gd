@@ -230,16 +230,23 @@ func _on_handle_input(_camera: Node, event: InputEvent, _position: Vector3, _nor
 		if event.get("pressed") and not event.get("canceled"):
 			if _handle_touch < 0:
 				_handle_hand = _hand_of(event)
-				if _handle_hand != null:
+				var pinch: Variant = _pinch_of(_handle_hand) if _handle_hand != null else null
+				if pinch != null:
 					_handle_touch = index
-					_handle_grab = _space_center - _pinch_of(_handle_hand)
+					_handle_grab = _space_center - pinch
 		elif index == _handle_touch:
 			_handle_touch = -1
 			_handle_hand = null
 	elif event.is_class("InputEventSpatialDrag") and event.get("index") == _handle_touch:
-		if _handle_hand.has_tracking_data:
-			_space_center = _pinch_of(_handle_hand) + _handle_grab
-			_place_in_space()
+		# Losing the hand lets go of the handle, rather than placing the box
+		# by a stale or empty pose.
+		var pinch: Variant = _pinch_of(_handle_hand)
+		if pinch == null:
+			_handle_touch = -1
+			_handle_hand = null
+			return
+		_space_center = pinch + _handle_grab
+		_place_in_space()
 
 
 ## The tracked hand making a spatial event, or null.
@@ -252,11 +259,16 @@ func _hand_of(event: InputEvent) -> XRHandTracker:
 
 
 ## Where a hand pinches, between its thumb and index fingertips, in meters
-## in the immersive space.
-static func _pinch_of(hand: XRHandTracker) -> Vector3:
-	var thumb := hand.get_hand_joint_transform(XRHandTracker.HAND_JOINT_THUMB_TIP).origin
-	var index := hand.get_hand_joint_transform(XRHandTracker.HAND_JOINT_INDEX_FINGER_TIP).origin
-	return (thumb + index) * 0.5
+## in the immersive space; null while either tip's position isn't known.
+static func _pinch_of(hand: XRHandTracker) -> Variant:
+	if not hand.has_tracking_data:
+		return null
+	var tips := Vector3.ZERO
+	for joint in [XRHandTracker.HAND_JOINT_THUMB_TIP, XRHandTracker.HAND_JOINT_INDEX_FINGER_TIP]:
+		if not hand.get_hand_joint_flags(joint) & XRHandTracker.HAND_JOINT_FLAG_POSITION_VALID:
+			return null
+		tips += hand.get_hand_joint_transform(joint).origin
+	return tips * 0.5
 
 
 ## The person left the immersive space, which hid the Window: bring the
