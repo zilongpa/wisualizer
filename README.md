@@ -37,10 +37,12 @@ editor's export templates as `4.7.dev/windows_release_x86_64.exe`.
 
 ## Use
 
-The first window is the library. **Open…** opens a ZIP, after asking whether
-to add it to the library, which keeps a copy to open again later; pick one
-there to open it again, or delete it from the library (the original file
-stays). Each ZIP opens as its own volume, so several can be open at once. A
+The first window is the library: its buttons on the left, and on the right
+a tile for each ZIP added, with the ZIP's icon or the first letter of its
+title. **Open…** opens a ZIP, after asking whether to add it to the library,
+which keeps a copy to open again later; tap a tile to open it again, or delete
+it from the library (the original file stays). Each model of a ZIP opens as
+its own volume, so several can be open at once. A
 ZIP with notes shows them beside the volume; see [ZIPs](#zips). Dots mark
 the points a ZIP has labels for: bring a controller to one, or the pointer on a
 desktop, to read it. On visionOS, tap a dot (or click it in the simulator) to
@@ -96,7 +98,8 @@ name.
   bricks have, and which of them has a step at each. There is nothing to set.
 - **Notes**: BBCode on the left, as it will look on the right, beside the
   first model's volume.
-- **Images**: what the notes show. **Insert into notes** adds an `[img]` tag.
+- **Images**: what the notes show. **Insert into notes** adds an `[img]` tag;
+  **The ZIP's icon** shows the image for the ZIP in the library.
 
 **Save** writes the ZIP into the library, **Save As…** somewhere else, and
 **Preview** saves and opens it.

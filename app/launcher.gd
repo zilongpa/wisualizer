@@ -13,10 +13,15 @@ const LIBRARY := "user://library"
 ## When each ZIP in the library was last opened, by file name.
 const OPENED_FILE := "user://opened.cfg"
 const COPY_CHUNK := 1 << 20
+## How many recently opened ZIPs the sidebar lists.
+const RECENT := 8
 
-@onready var library_list: VBoxContainer = %Library
-## A hidden row, copied for each ZIP so its look is set in the editor.
-@onready var row_template: HBoxContainer = %Row
+@onready var library_list: HFlowContainer = %Library
+## A hidden tile, copied for each ZIP so its look is set in the editor.
+@onready var tile_template: VBoxContainer = %Tile
+## The same for the sidebar's recent ZIPs.
+@onready var recent_list: VBoxContainer = %Recent
+@onready var recent_template: Button = %RecentRow
 @onready var confirm_delete: ConfirmationDialog = %ConfirmDelete
 
 var _pending_delete := ""
@@ -238,21 +243,59 @@ func read_library() -> Array[String]:
 	return paths
 
 
+## Shows a tile for each ZIP in the library: its icon, or its title's
+## first letter, and its title.
 func show_library() -> void:
 	for child in library_list.get_children():
-		if child != row_template:
+		if child != tile_template:
 			child.queue_free()
 	var paths := read_library()
-	%Empty.visible = paths.is_empty()
+	%Caption.text = "Most recently opened first." if not paths.is_empty() \
+			else "Open a ZIP to start, and add it to the library to open it again later."
+	var titles := {}
 	for path in paths:
-		var row := row_template.duplicate() as HBoxContainer
-		row.visible = true
-		var open_button := row.get_node("Open") as Button
-		open_button.text = path.get_file().get_basename()
-		open_button.tooltip_text = "Open %s" % path.get_file()
+		var summary := Meta.summary(path)
+		var title: String = summary.get("title", path.get_file().get_basename())
+		titles[path] = title
+		var tile := tile_template.duplicate() as VBoxContainer
+		tile.visible = true
+		var open_button := tile.get_node("Open") as Button
+		open_button.tooltip_text = "Open %s" % title
 		open_button.pressed.connect(open_zip.bind(path))
-		var edit_button := row.get_node("Edit") as Button
+		# An icon is clipped to the tile's shape; its letter needs no clipping,
+		# which on visionOS leaves the clipped area opaque.
+		var icon: Image = summary.get("icon")
+		if icon:
+			(open_button.get_node("Mask/Icon") as TextureRect).texture = ImageTexture.create_from_image(icon)
+		open_button.get_node("Mask").visible = icon != null
+		open_button.get_node("Back").visible = icon == null
+		(open_button.get_node("Back/Initial") as Label).text = title.left(1).to_upper()
+		(tile.get_node("Footer/Name") as Label).text = title
+		var edit_button := tile.get_node("Footer/Edit") as Button
 		edit_button.visible = _editing
 		edit_button.pressed.connect(edit_zip.bind(path))
-		(row.get_node("Delete") as Button).pressed.connect(ask_delete.bind(path))
-		library_list.add_child(row)
+		(tile.get_node("Footer/Delete") as Button).pressed.connect(ask_delete.bind(path))
+		library_list.add_child(tile)
+	_show_recent(paths, titles)
+
+
+## Lists the ZIPs opened most recently, of [param paths] in the library,
+## in the sidebar, by their [param titles].
+func _show_recent(paths: Array[String], titles: Dictionary) -> void:
+	for child in recent_list.get_children():
+		if child != recent_template:
+			child.queue_free()
+	var opened := ConfigFile.new()
+	opened.load(OPENED_FILE)
+	var recent: Array[String] = []
+	for path in paths:
+		if opened.has_section_key("opened", path.get_file()) and recent.size() < RECENT:
+			recent.append(path)
+	%RecentTitle.visible = not recent.is_empty()
+	for path in recent:
+		var row := recent_template.duplicate() as Button
+		row.visible = true
+		row.text = titles[path]
+		row.tooltip_text = "Open %s" % row.text
+		row.pressed.connect(open_zip.bind(path))
+		recent_list.add_child(row)
