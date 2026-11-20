@@ -52,6 +52,7 @@ func _init() -> void:
 	_joints.multimesh = MultiMesh.new()
 	_joints.multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	_joints.multimesh.mesh = dot
+	_joints.visible = false
 	add_child(_joints)
 
 
@@ -111,6 +112,8 @@ func _show_joints(hands: Array[XRHandTracker]) -> void:
 	var count := hands.size() * XRHandTracker.HAND_JOINT_MAX
 	if _joints.multimesh.instance_count != count:
 		_joints.multimesh.instance_count = count
+	# RealityKit draws an empty MultiMesh's mesh once, at the origin.
+	_joints.visible = count > 0
 	if count == 0:
 		return
 	var meters_per_unit := volume.get_measured_size()[volume.keep_aspect] / volume.size
